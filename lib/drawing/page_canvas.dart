@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 
 import '../data/models.dart';
 import '../theme/tokens.dart';
-import '../ui/art.dart';
 import '../ui/widgets/paper.dart';
 import 'canvas_controller.dart';
 import 'stroke_renderer.dart';
@@ -21,14 +20,12 @@ class PageCanvas extends StatefulWidget {
     super.key,
     required this.controller,
     required this.paper,
-    this.art,
     this.padding = const EdgeInsets.all(20),
     this.twoFingerUndo = true,
   });
 
   final CanvasController controller;
   final PaperType paper;
-  final Artwork? art;
   final EdgeInsets padding;
   final bool twoFingerUndo;
 
@@ -96,7 +93,6 @@ class _PageCanvasState extends State<PageCanvas> {
     final canvas = Canvas(recorder);
     canvas.translate(-p.dx, -p.dy);
     paintPaper(canvas, _page, widget.paper);
-    if (widget.art != null) paintArtwork(canvas, widget.art!, _page);
     StrokeRenderer.paintLayers(canvas, _page, _c.layers);
     final image = recorder.endRecording().toImageSync(1, 1);
     final data = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
@@ -225,7 +221,6 @@ class _PageCanvasState extends State<PageCanvas> {
                     scale: _scale,
                     page: _page,
                     paper: widget.paper,
-                    art: widget.art,
                   ),
                 ),
               ),
@@ -252,14 +247,12 @@ class _PaperLayer extends CustomPainter {
     required this.scale,
     required this.page,
     required this.paper,
-    this.art,
   });
 
   final Offset origin;
   final double scale;
   final Size page;
   final PaperType paper;
-  final Artwork? art;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -276,7 +269,6 @@ class _PaperLayer extends CustomPainter {
     canvas.translate(origin.dx, origin.dy);
     canvas.scale(scale);
     paintPaper(canvas, page, paper);
-    if (art != null) paintArtwork(canvas, art!, page);
     canvas.restore();
   }
 
@@ -285,7 +277,6 @@ class _PaperLayer extends CustomPainter {
       old.origin != origin ||
       old.scale != scale ||
       old.paper != paper ||
-      old.art != art ||
       old.page != page;
 }
 

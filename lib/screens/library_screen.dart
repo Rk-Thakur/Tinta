@@ -159,18 +159,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     padding: const EdgeInsets.symmetric(
                       horizontal: TintaSpace.gutter,
                     ),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      mainAxisExtent: 104,
-                      children: [
-                        for (final p in store.loosePages)
-                          _LoosePageCard(page: p),
-                      ],
-                    ),
+                    child: store.loosePages.isEmpty
+                        ? Text(
+                            'Pages you start with + land here until you move them into a sketchbook.',
+                            style: TintaType.body13,
+                          )
+                        : GridView.count(
+                            crossAxisCount: 2,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            mainAxisExtent: 104,
+                            children: [
+                              for (final p in store.loosePages)
+                                _LoosePageCard(page: p),
+                            ],
+                          ),
                   ),
                 ],
               ],

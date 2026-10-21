@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tinta/app/app.dart';
 import 'package:tinta/app/routes.dart';
+import 'package:tinta/data/library_store.dart';
+
+import 'fixtures.dart';
 
 void main() {
   Future<void> pumpPhone(WidgetTester tester, Widget app) async {
@@ -20,21 +23,38 @@ void main() {
     expect(find.text('The sketchbook that never needs Wi‑Fi.'), findsOneWidget);
   });
 
-  testWidgets('onboarding → library → sketchbook', (tester) async {
-    await pumpPhone(tester, const TintaApp());
+  testWidgets('first launch: empty library, onboarding makes a first book', (
+    tester,
+  ) async {
+    await pumpPhone(tester, TintaApp(library: LibraryStore.memory()));
     expect(find.text('Draw anywhere.\nEven at 30,000 ft.'), findsOneWidget);
 
     await tester.tap(find.text('Open my first sketchbook'));
     await tester.pumpAndSettle();
-    expect(find.text('Your studio'), findsOneWidget);
-    expect(find.text('Morning studies'), findsOneWidget);
-    expect(find.text('Loose pages'), findsOneWidget);
+    expect(find.text('My first sketchbook'), findsOneWidget);
+    expect(find.text('Turn the page'), findsOneWidget);
+    expect(find.text('0 days'), findsOneWidget);
 
+    await tester.tap(find.bySemanticsLabel('Back to library'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your studio'), findsOneWidget);
+    expect(find.text('My first sketchbook'), findsOneWidget);
+    expect(find.textContaining('Pages you start with'), findsOneWidget);
+  });
+
+  testWidgets('sketchbook stats come from real strokes', (tester) async {
+    await pumpPhone(
+      tester,
+      TintaApp(library: fixtureLibrary(), initialRoute: Routes.library),
+    );
     await tester.tap(find.text('Morning studies'));
     await tester.pumpAndSettle();
     expect(find.text('Figure, 2 min'), findsOneWidget);
-    expect(find.text('Turn the page'), findsOneWidget);
-    expect(find.text('6 days'), findsOneWidget);
+    expect(
+      find.text('3 days'),
+      findsOneWidget,
+    ); // today, yesterday, the day before
+    expect(find.text('0m'), findsOneWidget); // a few strokes, under a minute
   });
 
   testWidgets('new page sheet → canvas → draw → undo', (tester) async {
@@ -109,12 +129,15 @@ void main() {
   });
 
   testWidgets('library search filters sketchbooks', (tester) async {
-    await pumpPhone(tester, const TintaApp(initialRoute: Routes.library));
+    await pumpPhone(
+      tester,
+      TintaApp(library: fixtureLibrary(), initialRoute: Routes.library),
+    );
     await tester.tap(find.bySemanticsLabel('Search'));
     await tester.pump();
     await tester.enterText(find.byType(EditableText), 'ink');
     await tester.pump();
     expect(find.text('Inktober'), findsOneWidget);
-    expect(find.text('Travel journal'), findsNothing);
+    expect(find.text('Morning studies'), findsNothing);
   });
 }

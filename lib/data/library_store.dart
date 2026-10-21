@@ -13,8 +13,10 @@ class LibraryStore extends ChangeNotifier {
   LibraryStore._(this._sketchbooks, this._loosePages, this.vault);
 
   /// In-memory library (tests, previews). Empty unless given content.
-  LibraryStore.memory({List<Sketchbook> sketchbooks = const [], List<SketchPage> loosePages = const []})
-    : this._(List.of(sketchbooks), List.of(loosePages), null);
+  LibraryStore.memory({
+    List<Sketchbook> sketchbooks = const [],
+    List<SketchPage> loosePages = const [],
+  }) : this._(List.of(sketchbooks), List.of(loosePages), null);
 
   /// Ids of the sample content earlier builds wrote on first launch.
   static const _sampleBooks = {'morning', 'travel', 'inktober'};
@@ -60,7 +62,10 @@ class LibraryStore extends ChangeNotifier {
     for (var i = _sketchbooks.length - 1; i >= 0; i--) {
       final book = _sketchbooks[i];
       if (!_sampleBooks.contains(book.id)) continue;
-      final keep = [for (final p in book.pages) if (!p.isBlank) p];
+      final keep = [
+        for (final p in book.pages)
+          if (!p.isBlank) p,
+      ];
       _dirtyPages.addAll(book.pages.where((p) => p.isBlank).map((p) => p.id));
       if (keep.isEmpty) {
         _sketchbooks.removeAt(i);
@@ -70,7 +75,11 @@ class LibraryStore extends ChangeNotifier {
       changed = changed || keep.length != book.pages.length;
     }
     final before = _loosePages.length;
-    _dirtyPages.addAll(_loosePages.where((p) => _sampleLoose.contains(p.id) && p.isBlank).map((p) => p.id));
+    _dirtyPages.addAll(
+      _loosePages
+          .where((p) => _sampleLoose.contains(p.id) && p.isBlank)
+          .map((p) => p.id),
+    );
     _loosePages.removeWhere((p) => _sampleLoose.contains(p.id) && p.isBlank);
     if (changed || before != _loosePages.length) {
       _dirtyIndex = true;
@@ -120,7 +129,6 @@ class LibraryStore extends ChangeNotifier {
       aspect: draft.aspect,
       riso: draft.riso,
       risoInks: draft.risoInks,
-      art: draft.art,
       layers: draft.layers,
     );
     final SketchPage page;

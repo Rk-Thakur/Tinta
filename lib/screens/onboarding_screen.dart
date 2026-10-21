@@ -2,10 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../app/routes.dart';
+import '../data/library_store.dart';
+import '../data/models.dart';
 import '../data/prefs.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
 import '../ui/art.dart';
+import '../ui/widgets/paper.dart';
 import '../ui/widgets/widgets.dart';
 
 class _Slide {
@@ -141,9 +144,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  /// Skip: straight to the (possibly empty) library.
   void _finish() {
     PrefsScope.of(context).onboarded = true;
     Navigator.of(context).pushReplacementNamed(Routes.library);
+  }
+
+  /// "Open my first sketchbook": make one if there isn't any, then open it.
+  void _openFirstBook() {
+    final store = LibraryScope.of(context);
+    final book = store.sketchbooks.isNotEmpty
+        ? store.sketchbooks.first
+        : store.createSketchbook(
+            title: 'My first sketchbook',
+            cover: coverPresets.first,
+            paper: PaperType.toned,
+            format: PageFormat.a5,
+          );
+    PrefsScope.of(context).onboarded = true;
+    final nav = Navigator.of(context);
+    nav.pushReplacementNamed(Routes.library);
+    nav.pushNamed(Routes.sketchbook, arguments: book.id);
   }
 
   @override
@@ -206,7 +227,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   SizedBox(
                     height: 56,
                     child: FilledButton(
-                      onPressed: _finish,
+                      onPressed: _openFirstBook,
                       style: FilledButton.styleFrom(
                         backgroundColor: TintaColors.studioInk,
                         foregroundColor: Colors.white,

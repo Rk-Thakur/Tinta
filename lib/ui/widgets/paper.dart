@@ -253,7 +253,6 @@ class _PreviewPainter extends CustomPainter {
     canvas.clipRect(Offset.zero & size);
     canvas.translate(dst.left, dst.top);
     canvas.scale(dst.width / page.size.width);
-    if (page.art != null) paintArtwork(canvas, page.art!, page.size);
     StrokeRenderer.paintLayers(canvas, page.size, page.layers);
     canvas.restore();
   }

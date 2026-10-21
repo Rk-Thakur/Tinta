@@ -6,7 +6,6 @@ import 'package:flutter/painting.dart';
 import '../data/models.dart';
 import '../drawing/stroke.dart';
 import '../drawing/stroke_renderer.dart';
-import '../ui/art.dart';
 import '../ui/widgets/paper.dart';
 
 /// Pixel size of a page export at [scale] (1× = 1024 px wide).
@@ -20,7 +19,6 @@ ui.Picture recordPage(
   SketchPage page,
   Size size, {
   bool paper = true,
-  bool art = true,
   List<PageLayer>? layers,
   Stroke? live,
   int liveLayer = -1,
@@ -30,7 +28,6 @@ ui.Picture recordPage(
   final scale = size.width / page.size.width;
   canvas.scale(scale);
   if (paper) paintPaper(canvas, page.size, page.paper);
-  if (art && page.art != null) paintArtwork(canvas, page.art!, page.size);
   StrokeRenderer.paintLayers(
     canvas,
     page.size,

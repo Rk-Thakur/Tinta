@@ -71,8 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await Reminders.cancel();
       return;
     }
-    final prompt = LibraryScope.of(context).dailyPrompt.text;
-    final ok = await Reminders.schedule(prefs.reminderTime, prompt: prompt);
+    final ok = await Reminders.schedule(prefs.reminderTime);
     prefs.reminder = ok;
     if (!ok && mounted) {
       setState(
@@ -170,8 +169,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            const _ProCard(),
           ],
         ),
       ),
@@ -369,53 +366,6 @@ class _ToggleRow extends StatelessWidget {
           Semantics(
             label: title,
             child: TintaSwitch(value: value, onChanged: onChanged),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProCard extends StatelessWidget {
-  const _ProCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: TintaColors.fluoroOrange,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 10,
-        children: [
-          Text('Tinta Pro', style: TintaType.display(24)),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 260),
-            child: Text(
-              'Unlimited sketchbooks, every brush, layered PSD, replay video and riso separations.',
-              style: TintaType.body(14, height: 1.45),
-            ),
-          ),
-          PillButton(
-            label: 'Unlock for [YOUR PRICE]/mo',
-            onPressed: () => showDialog<void>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Tinta Pro'),
-                content: const Text(
-                  'Purchases aren’t set up in this build, so every Pro feature is already unlocked.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('OK'),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),

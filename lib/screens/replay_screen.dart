@@ -10,7 +10,6 @@ import '../drawing/stroke_renderer.dart';
 import '../export/exporter.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
-import '../ui/art.dart';
 import '../ui/widgets/paper.dart';
 import '../ui/widgets/widgets.dart';
 import 'export_sheet.dart';
@@ -93,7 +92,6 @@ class _ReplayScreenState extends State<ReplayScreen>
         aspect: source.aspect,
         riso: source.riso,
         risoInks: source.risoInks,
-        art: source.art,
         layers: frame.layers,
       ),
       bookId: book?.id,
@@ -322,7 +320,6 @@ class _FramePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.scale(size.width / page.size.width);
     paintPaper(canvas, page.size, page.paper);
-    if (page.art != null) paintArtwork(canvas, page.art!, page.size);
     StrokeRenderer.paintLayers(
       canvas,
       page.size,
@@ -420,7 +417,7 @@ class _EmptyReplay extends StatelessWidget {
             ),
           ),
           Text(
-            'Tinta records every stroke you draw. Sample pages are pictures, so “$title” has no strokes to play back.',
+            'Tinta records every stroke as you draw. Once “$title” has some, you can play it back here.',
             textAlign: TextAlign.center,
             style: TintaType.body(14, color: TintaColors.studioMuted),
           ),

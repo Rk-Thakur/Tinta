@@ -124,7 +124,9 @@ abstract final class Codec {
       aspect: (j['aspect'] as num?)?.toDouble() ?? 1.414,
       riso: j['riso'] == true,
       risoInks: inks.length == 2 ? inks : SketchPage.defaultRisoInks,
-      drawnDays: [for (final d in (j['days'] as List? ?? const [])) d as String],
+      drawnDays: [
+        for (final d in (j['days'] as List? ?? const [])) d as String,
+      ],
       layers: layers.isEmpty ? SketchPage.defaultLayers : layers,
     );
   }

@@ -35,7 +35,7 @@ abstract final class Reminders {
 
   /// Asks for permission and schedules the reminder every day at [time].
   /// Returns false if the user declined notifications.
-  static Future<bool> schedule(TimeOfDay time, {required String prompt}) async {
+  static Future<bool> schedule(TimeOfDay time) async {
     await _init();
     final granted = switch (defaultTargetPlatform) {
       TargetPlatform.iOS =>
@@ -69,7 +69,7 @@ abstract final class Reminders {
     await _plugin.zonedSchedule(
       id: _id,
       title: 'Daily prompt',
-      body: prompt,
+      body: 'Today’s drawing prompt is waiting in Tinta.',
       scheduledDate: next,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(

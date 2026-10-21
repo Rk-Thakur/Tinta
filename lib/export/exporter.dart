@@ -123,16 +123,6 @@ class Exporter {
         ),
       );
     }
-    if (page.art != null) {
-      layers.add(
-        PsdLayer(
-          name: 'Imported art',
-          rgba: await pixels(
-            recordPage(page, size, paper: false, layers: const []),
-          ),
-        ),
-      );
-    }
     for (final l in page.layers) {
       final solo = l.copyWith(
         visible: true,
@@ -143,7 +133,7 @@ class Exporter {
         PsdLayer(
           name: l.name,
           rgba: await pixels(
-            recordPage(page, size, paper: false, art: false, layers: [solo]),
+            recordPage(page, size, paper: false, layers: [solo]),
           ),
           blend: l.blend,
           opacity: l.opacity,
@@ -184,7 +174,7 @@ class Exporter {
         Offset.zero & size,
         ui.Paint()..color = const ui.Color(0xFFFFFFFF),
       );
-      canvas.drawPicture(recordPage(sep, size, paper: false, art: false));
+      canvas.drawPicture(recordPage(sep, size, paper: false));
       final image = await recorder.endRecording().toImage(
         size.width.round(),
         size.height.round(),

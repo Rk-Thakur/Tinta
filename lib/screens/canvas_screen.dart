@@ -43,7 +43,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
         SketchPage(
           id: '',
           number: 0,
-          title: 'Daily prompt',
+          title: args.prompt!.text,
           paper: PaperType.smooth,
         ),
       );
@@ -58,7 +58,14 @@ class _CanvasScreenState extends State<CanvasScreen> {
       risoInks: _page.riso ? _page.risoInks : const [],
       onCommit: (layers) {
         // Build on the stored page so renames elsewhere aren't overwritten.
-        _page = (_store.page(_page.id) ?? _page).copyWith(layers: layers);
+        final stored = _store.page(_page.id) ?? _page;
+        final today = dayKey(DateTime.now());
+        _page = stored.copyWith(
+          layers: layers,
+          drawnDays: stored.drawnDays.contains(today)
+              ? null
+              : [...stored.drawnDays, today],
+        );
         _store.updatePage(_page);
       },
       onInksChanged: (inks) {
@@ -114,7 +121,6 @@ class _CanvasScreenState extends State<CanvasScreen> {
                       child: PageCanvas(
                         controller: _c,
                         paper: _page.paper,
-                        art: _page.art,
                         twoFingerUndo: prefs.twoFingerUndo,
                         padding: EdgeInsets.fromLTRB(
                           20,

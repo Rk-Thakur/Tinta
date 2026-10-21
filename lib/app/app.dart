@@ -27,7 +27,7 @@ class TintaApp extends StatefulWidget {
 }
 
 class _TintaAppState extends State<TintaApp> with WidgetsBindingObserver {
-  late final LibraryStore _store = widget.library ?? LibraryStore.seeded();
+  late final LibraryStore _store = widget.library ?? LibraryStore.memory();
   late final StudioStore _studio = widget.studio ?? StudioStore();
   late final AppPrefs _prefs = widget.prefs ?? AppPrefs();
 

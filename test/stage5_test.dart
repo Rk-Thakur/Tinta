@@ -14,6 +14,8 @@ import 'package:tinta/drawing/stroke.dart';
 import 'package:tinta/export/render.dart';
 import 'package:tinta/services/photo_palette.dart';
 
+import 'fixtures.dart';
+
 Stroke _stroke(
   int id,
   int t0, {
@@ -236,10 +238,18 @@ void main() {
     await Directory('${dir.path}/exports').create();
     final vault = Vault(dir);
 
-    final store = await LibraryStore.open(
-      vault,
-    ); // first launch: writes samples
-    final book = store.sketchbooks.first;
+    final store = await LibraryStore.open(vault); // first launch: empty
+    expect(store.sketchbooks, isEmpty);
+    final book = store.createSketchbook(
+      title: 'Travel',
+      cover: const CoverDesign(
+        color: Color(0xFF2F4BFF),
+        band: Color(0xFF17171C),
+        motif: CoverMotif.dot,
+      ),
+      paper: PaperType.smooth,
+      format: PageFormat.a5,
+    );
     final page = store.addPage(
       SketchPage(
         id: '',
@@ -270,7 +280,7 @@ void main() {
 
   group('library management', () {
     test('create, rename and recover a sketchbook', () {
-      final store = LibraryStore.seeded();
+      final store = fixtureLibrary();
       final book = store.createSketchbook(
         title: 'Summer',
         cover: const CoverDesign(
@@ -288,7 +298,7 @@ void main() {
     });
 
     test('move a page between a book and loose pages', () {
-      final store = LibraryStore.seeded();
+      final store = fixtureLibrary();
       final loose = store.loosePages.first;
       final book = store.sketchbooks.first;
       final before = book.pageCount;
@@ -302,7 +312,7 @@ void main() {
     });
 
     test('duplicate and delete pages; delete a whole book', () {
-      final store = LibraryStore.seeded();
+      final store = fixtureLibrary();
       final book = store.sketchbooks.first;
       final original = book.pages.first;
       final copy = store.duplicatePage(original.id);
@@ -322,8 +332,19 @@ void main() {
       await Directory('${dir.path}/exports').create();
       final vault = Vault(dir);
       final store = await LibraryStore.open(vault);
-      final book = store.sketchbooks.first;
-      final file = File('${dir.path}/${vault.pagePath(book.pages.first.id)}');
+      final book = store.createSketchbook(
+        title: 'Doomed',
+        cover: const CoverDesign(
+          color: Color(0xFF2F4BFF),
+          band: Color(0xFF17171C),
+          motif: CoverMotif.dot,
+        ),
+        paper: PaperType.smooth,
+        format: PageFormat.a5,
+      );
+      final page = store.addPage(fixturePage('', 0), bookId: book.id);
+      await store.flush();
+      final file = File('${dir.path}/${vault.pagePath(page.id)}');
       expect(file.existsSync(), isTrue);
       store.deleteSketchbook(book.id);
       await store.flush();
@@ -331,5 +352,111 @@ void main() {
       final again = await LibraryStore.open(vault);
       expect(again.sketchbook(book.id), isNull);
     });
+  });
+
+  group('real stats', () {
+    test('active time merges close strokes and ignores long pauses', () {
+      final page = _page([
+        _stroke(1, 0),
+        _stroke(2, 10000),
+        _stroke(3, 120000),
+      ]);
+      // 0–40, 10000–10040 merge (gap 10 s) = 10 040 ms; 120000–120040 = 40 ms.
+      expect(page.activeTime().inMilliseconds, 10080);
+    });
+
+    test('streak counts consecutive days ending today or yesterday', () {
+      final now = DateTime(2026, 10, 21, 9);
+      String d(int ago) => dayKey(DateTime(2026, 10, 21 - ago));
+      Sketchbook book(List<String> days) => Sketchbook(
+        id: 'b',
+        title: 'B',
+        cover: const CoverDesign(
+          color: Color(0xFF000000),
+          band: Color(0xFF000000),
+          motif: CoverMotif.dot,
+        ),
+        paper: PaperType.smooth,
+        format: PageFormat.a5,
+        pages: [
+          SketchPage(
+            id: 'p',
+            number: 1,
+            paper: PaperType.smooth,
+            drawnDays: days,
+          ),
+        ],
+      );
+      expect(book([d(0), d(1), d(2), d(4)]).streakDays(now: now), 3);
+      expect(
+        book([d(1), d(2)]).streakDays(now: now),
+        2,
+      ); // not lost before today's session
+      expect(book([d(2)]).streakDays(now: now), 0);
+    });
+  });
+
+  test('old sample content is removed unless it was drawn on', () async {
+    final dir = await Directory.systemTemp.createTemp('tinta-vault');
+    addTearDown(() => dir.delete(recursive: true));
+    await Directory('${dir.path}/pages').create();
+    await Directory('${dir.path}/exports').create();
+    final vault = Vault(dir);
+    // What an earlier build left behind: a sample book with one page the
+    // user drew on, an untouched sample book and an untouched sample page.
+    const cover = CoverDesign(
+      color: Color(0xFF000000),
+      band: Color(0xFF000000),
+      motif: CoverMotif.dot,
+    );
+    final drawn = _page([_stroke(1, 0)]);
+    const blank = SketchPage(
+      id: 'morning-p1',
+      number: 1,
+      paper: PaperType.toned,
+    );
+    const blankLoose = SketchPage(
+      id: 'loose-1',
+      number: 1,
+      paper: PaperType.smooth,
+    );
+    for (final p in [drawn, blank, blankLoose]) {
+      await vault.writeJson(vault.pagePath(p.id), Codec.page(p));
+    }
+    await vault.writeJson('library.json', {
+      'v': 1,
+      'books': [
+        Codec.book(
+          Sketchbook(
+            id: 'morning',
+            title: 'Morning studies',
+            cover: cover,
+            paper: PaperType.toned,
+            format: PageFormat.a5,
+            pages: [drawn, blank],
+          ),
+        ),
+        Codec.book(
+          const Sketchbook(
+            id: 'travel',
+            title: 'Travel journal',
+            cover: cover,
+            paper: PaperType.toned,
+            format: PageFormat.a5,
+            pages: [],
+          ),
+        ),
+      ],
+      'loose': ['loose-1'],
+    });
+
+    final store = await LibraryStore.open(vault);
+    expect(store.sketchbooks.map((b) => b.id), ['morning']);
+    expect(store.sketchbook('morning')!.pages.map((p) => p.id), [drawn.id]);
+    expect(store.loosePages, isEmpty);
+    expect(
+      File('${dir.path}/${vault.pagePath('morning-p1')}').existsSync(),
+      isFalse,
+    );
   });
 }

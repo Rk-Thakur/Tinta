@@ -168,7 +168,8 @@ class Sketchbook {
   int get pageCount => pages.length;
 
   /// Total drawing time across the book's pages.
-  Duration get timeDrawn => pages.fold(Duration.zero, (sum, p) => sum + p.activeTime());
+  Duration get timeDrawn =>
+      pages.fold(Duration.zero, (sum, p) => sum + p.activeTime());
 
   /// Consecutive days with drawing, ending today (or yesterday, so a streak
   /// isn't lost before today's session).
@@ -176,7 +177,9 @@ class Sketchbook {
     final days = {for (final p in pages) ...p.drawnDays};
     if (days.isEmpty) return 0;
     var day = DateUtils.dateOnly(now ?? DateTime.now());
-    if (!days.contains(dayKey(day))) day = day.subtract(const Duration(days: 1));
+    if (!days.contains(dayKey(day))) {
+      day = day.subtract(const Duration(days: 1));
+    }
     var streak = 0;
     while (days.contains(dayKey(day))) {
       streak++;

@@ -181,7 +181,7 @@ class _Header extends StatelessWidget {
                       ),
                       _Stat(
                         value:
-                            '${book.streakDays} ${book.streakDays == 1 ? 'day' : 'days'}',
+                            '${book.streakDays()} ${book.streakDays() == 1 ? 'day' : 'days'}',
                         label: 'streak',
                         background: statBg,
                       ),
