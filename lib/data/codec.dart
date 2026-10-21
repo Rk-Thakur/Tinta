@@ -3,7 +3,6 @@ import 'dart:ui';
 import '../drawing/brushes.dart';
 import '../drawing/stroke.dart';
 import 'models.dart';
-import 'seed.dart';
 
 /// JSON encoding for everything Tinta stores on device. Points are packed
 /// into flat number lists to keep page files small.
@@ -107,7 +106,7 @@ abstract final class Codec {
     'aspect': p.aspect,
     'riso': p.riso,
     'inks': [for (final c in p.risoInks) _c(c)],
-    if (SeedArt.keyOf(p.art) != null) 'art': SeedArt.keyOf(p.art),
+    if (p.drawnDays.isNotEmpty) 'days': p.drawnDays,
     'layers': [for (final l in p.layers) layer(l)],
   };
 
@@ -125,7 +124,7 @@ abstract final class Codec {
       aspect: (j['aspect'] as num?)?.toDouble() ?? 1.414,
       riso: j['riso'] == true,
       risoInks: inks.length == 2 ? inks : SketchPage.defaultRisoInks,
-      art: SeedArt.byKey[j['art']],
+      drawnDays: [for (final d in (j['days'] as List? ?? const [])) d as String],
       layers: layers.isEmpty ? SketchPage.defaultLayers : layers,
     );
   }
@@ -153,8 +152,6 @@ abstract final class Codec {
     'cover': cover(b.cover),
     'paper': b.paper.name,
     'format': b.format.name,
-    'timeDrawnMs': b.timeDrawn.inMilliseconds,
-    'streakDays': b.streakDays,
     'pages': [for (final p in b.pages) p.id],
   };
 
@@ -165,10 +162,6 @@ abstract final class Codec {
         cover: coverFrom(j['cover']! as Map<String, Object?>),
         paper: _enum(PaperType.values, j['paper'], PaperType.smooth),
         format: _enum(PageFormat.values, j['format'], PageFormat.a5),
-        timeDrawn: Duration(
-          milliseconds: (j['timeDrawnMs'] as num?)?.toInt() ?? 0,
-        ),
-        streakDays: (j['streakDays'] as num?)?.toInt() ?? 0,
         pages: pages,
       );
 

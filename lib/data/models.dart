@@ -1,8 +1,8 @@
+import 'package:flutter/material.dart' show DateUtils;
 import 'package:flutter/widgets.dart';
 
 import '../drawing/stroke.dart';
 import '../theme/tokens.dart';
-import '../ui/art.dart';
 
 enum PaperType {
   smooth('Smooth', TintaColors.paperSmooth),
@@ -64,11 +64,11 @@ class SketchPage {
     required this.number,
     this.title,
     required this.paper,
-    this.art,
     this.aspect = 1.414,
     this.riso = false,
     this.layers = defaultLayers,
     this.risoInks = defaultRisoInks,
+    this.drawnDays = const [],
   });
 
   static const defaultRisoInks = [
@@ -83,9 +83,6 @@ class SketchPage {
   final String? title;
   final PaperType paper;
 
-  /// Imported artwork shown beneath the layers (sample pages use it).
-  final Artwork? art;
-
   /// Height / width.
   final double aspect;
 
@@ -96,27 +93,58 @@ class SketchPage {
   /// The two inks a riso page prints with.
   final List<Color> risoInks;
 
+  /// Local calendar days ("2026-10-21") on which this page was drawn on.
+  final List<String> drawnDays;
+
   Size get size => Size(pageWidth, pageWidth * aspect);
 
-  bool get isBlank => art == null && layers.every((l) => l.strokes.isEmpty);
+  bool get isBlank => layers.every((l) => l.strokes.isEmpty);
+
+  /// Time spent actually drawing, from stroke timestamps: strokes less than
+  /// [idle] apart count as one session; longer pauses don't count.
+  Duration activeTime({Duration idle = const Duration(seconds: 30)}) {
+    final spans = <(int, int)>[
+      for (final l in layers)
+        for (final s in l.strokes)
+          if (s.points.isNotEmpty) (s.points.first.t, s.points.last.t),
+    ]..sort((a, b) => a.$1.compareTo(b.$1));
+    var total = 0;
+    int? start, end;
+    for (final (s, e) in spans) {
+      if (start == null || s - end! > idle.inMilliseconds) {
+        if (start != null) total += end! - start;
+        start = s;
+        end = e;
+      } else if (e > end) {
+        end = e;
+      }
+    }
+    if (start != null) total += end! - start;
+    return Duration(milliseconds: total);
+  }
 
   SketchPage copyWith({
     String? title,
     List<PageLayer>? layers,
     int? number,
     List<Color>? risoInks,
+    List<String>? drawnDays,
   }) => SketchPage(
     id: id,
     number: number ?? this.number,
     title: title ?? this.title,
     paper: paper,
-    art: art,
     aspect: aspect,
     riso: riso,
     layers: layers ?? this.layers,
     risoInks: risoInks ?? this.risoInks,
+    drawnDays: drawnDays ?? this.drawnDays,
   );
 }
+
+/// "2026-10-21" for a local date.
+String dayKey(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
 class Sketchbook {
   const Sketchbook({
@@ -126,8 +154,6 @@ class Sketchbook {
     required this.paper,
     required this.format,
     required this.pages,
-    this.timeDrawn = Duration.zero,
-    this.streakDays = 0,
   });
 
   final String id;
@@ -138,10 +164,26 @@ class Sketchbook {
 
   /// Newest first.
   final List<SketchPage> pages;
-  final Duration timeDrawn;
-  final int streakDays;
 
   int get pageCount => pages.length;
+
+  /// Total drawing time across the book's pages.
+  Duration get timeDrawn => pages.fold(Duration.zero, (sum, p) => sum + p.activeTime());
+
+  /// Consecutive days with drawing, ending today (or yesterday, so a streak
+  /// isn't lost before today's session).
+  int streakDays({DateTime? now}) {
+    final days = {for (final p in pages) ...p.drawnDays};
+    if (days.isEmpty) return 0;
+    var day = DateUtils.dateOnly(now ?? DateTime.now());
+    if (!days.contains(dayKey(day))) day = day.subtract(const Duration(days: 1));
+    var streak = 0;
+    while (days.contains(dayKey(day))) {
+      streak++;
+      day = DateTime(day.year, day.month, day.day - 1);
+    }
+    return streak;
+  }
 
   Sketchbook copyWith({
     List<SketchPage>? pages,
@@ -154,8 +196,6 @@ class Sketchbook {
     paper: paper,
     format: format,
     pages: pages ?? this.pages,
-    timeDrawn: timeDrawn,
-    streakDays: streakDays,
   );
 }
 

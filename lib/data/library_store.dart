@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import 'codec.dart';
 import 'models.dart';
-import 'seed.dart';
+import 'prompts.dart';
 import 'vault.dart';
 
 /// The user's sketchbooks and loose pages. With a [Vault] every change is
@@ -12,21 +12,20 @@ import 'vault.dart';
 class LibraryStore extends ChangeNotifier {
   LibraryStore._(this._sketchbooks, this._loosePages, this.vault);
 
-  /// In-memory library with the sample content.
-  LibraryStore.seeded()
-    : this._(List.of(seedSketchbooks), List.of(seedLoosePages), null);
+  /// In-memory library (tests, previews). Empty unless given content.
+  LibraryStore.memory({List<Sketchbook> sketchbooks = const [], List<SketchPage> loosePages = const []})
+    : this._(List.of(sketchbooks), List.of(loosePages), null);
 
-  /// Loads the library from the device, writing the samples on first launch.
+  /// Ids of the sample content earlier builds wrote on first launch.
+  static const _sampleBooks = {'morning', 'travel', 'inktober'};
+  static const _sampleLoose = {'loose-1', 'loose-2'};
+
+  /// Loads the library from the device. A first launch starts empty.
   static Future<LibraryStore> open(Vault vault) async {
     final index = await vault.readJson('library.json');
     if (index == null) {
-      final store = LibraryStore._(
-        List.of(seedSketchbooks),
-        List.of(seedLoosePages),
-        vault,
-      );
+      final store = LibraryStore._([], [], vault);
       store._dirtyIndex = true;
-      store._dirtyPages.addAll(store._allPages.map((p) => p.id));
       await store.flush();
       await store.refreshFreeSpace();
       return store;
@@ -48,8 +47,35 @@ class LibraryStore extends ChangeNotifier {
     }
     final loose = await load(index['loose'] as List? ?? const []);
     final store = LibraryStore._(books, loose, vault);
+    await store._removeUntouchedSamples();
     await store.refreshFreeSpace();
     return store;
+  }
+
+  /// Earlier builds seeded sample sketchbooks. Remove every sample page that
+  /// was never drawn on, and sample books left empty; keep anything the
+  /// user drew.
+  Future<void> _removeUntouchedSamples() async {
+    var changed = false;
+    for (var i = _sketchbooks.length - 1; i >= 0; i--) {
+      final book = _sketchbooks[i];
+      if (!_sampleBooks.contains(book.id)) continue;
+      final keep = [for (final p in book.pages) if (!p.isBlank) p];
+      _dirtyPages.addAll(book.pages.where((p) => p.isBlank).map((p) => p.id));
+      if (keep.isEmpty) {
+        _sketchbooks.removeAt(i);
+      } else if (keep.length != book.pages.length) {
+        _sketchbooks[i] = book.copyWith(pages: keep);
+      }
+      changed = changed || keep.length != book.pages.length;
+    }
+    final before = _loosePages.length;
+    _dirtyPages.addAll(_loosePages.where((p) => _sampleLoose.contains(p.id) && p.isBlank).map((p) => p.id));
+    _loosePages.removeWhere((p) => _sampleLoose.contains(p.id) && p.isBlank);
+    if (changed || before != _loosePages.length) {
+      _dirtyIndex = true;
+      await flush();
+    }
   }
 
   final Vault? vault;
@@ -58,7 +84,7 @@ class LibraryStore extends ChangeNotifier {
 
   List<Sketchbook> get sketchbooks => List.unmodifiable(_sketchbooks);
   List<SketchPage> get loosePages => List.unmodifiable(_loosePages);
-  DailyPrompt get dailyPrompt => seedPrompt;
+  DailyPrompt get dailyPrompt => promptFor(DateTime.now());
 
   Iterable<SketchPage> get _allPages => [
     ..._loosePages,
@@ -219,7 +245,6 @@ class LibraryStore extends ChangeNotifier {
         aspect: p.aspect,
         riso: p.riso,
         risoInks: p.risoInks,
-        art: p.art,
         layers: p.layers,
       ),
       bookId: bookOf(id)?.id,
