@@ -1,13 +1,18 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../data/library_store.dart';
 import '../data/prefs.dart';
+import '../data/studio_store.dart';
 import '../data/vault.dart';
 import '../services/backup.dart';
 import '../services/reminders.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
+import '../ui/widgets/dialogs.dart';
 import '../ui/widgets/widgets.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -21,6 +26,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   VaultUsage? _usage;
   bool _busy = false;
   String? _message;
+  bool _messageOk = false;
 
   @override
   void didChangeDependencies() {
@@ -46,6 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _busy = true;
       _message = null;
+      _messageOk = false;
     });
     try {
       final file = await Backup.create(vault, store);
@@ -54,6 +61,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     } catch (e) {
       if (mounted) setState(() => _message = 'Backup failed: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+      _refresh();
+    }
+  }
+
+  Future<void> _restore() async {
+    final library = LibraryScope.of(context);
+    final studio = StudioScope.of(context);
+    final vault = library.vault;
+    if (vault == null) return;
+    final picked = await FilePicker.pickFile(
+      dialogTitle: 'Choose a Tinta backup',
+      type: FileType.custom,
+      allowedExtensions: const ['zip'],
+    );
+    final path = picked?.path;
+    if (path == null || !mounted) return;
+    final ok = await confirmAction(
+      context,
+      title: 'Restore this backup?',
+      message:
+          'Sketchbooks, pages, palettes and brushes on this device are replaced by the backup. '
+          'What’s here now is saved to a safety backup in exported files first.',
+      confirmLabel: 'Restore',
+    );
+    if (!ok || !mounted) return;
+    setState(() {
+      _busy = true;
+      _message = null;
+      _messageOk = false;
+    });
+    try {
+      final r = await Backup.restore(File(path), vault, library, studio);
+      if (mounted) {
+        setState(() {
+          _message =
+              'Restored ${r.sketchbooks} sketchbooks and ${r.pages} pages.';
+          _messageOk = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _message = 'Restore failed: $e');
     } finally {
       if (mounted) setState(() => _busy = false);
       _refresh();
@@ -118,13 +168,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               usage: usage,
               busy: _busy,
               onBackup: _backup,
+              onRestore: _restore,
               onClearExports: (usage?.exports ?? 0) > 0 ? _clearExports : null,
             ),
             if (_message != null) ...[
               const SizedBox(height: 10),
               Text(
                 _message!,
-                style: TintaType.body(13, color: const Color(0xFFB3261E)),
+                style: TintaType.body(
+                  13,
+                  weight: _messageOk ? FontWeight.w700 : FontWeight.w400,
+                  color: _messageOk
+                      ? TintaColors.studioInk
+                      : const Color(0xFFB3261E),
+                ),
               ),
             ],
             const SizedBox(height: 16),
@@ -181,8 +238,11 @@ class _VaultCard extends StatelessWidget {
     required this.usage,
     required this.busy,
     required this.onBackup,
+    required this.onRestore,
     required this.onClearExports,
   });
+
+  final VoidCallback onRestore;
 
   final VaultUsage? usage;
   final bool busy;
@@ -297,6 +357,16 @@ class _VaultCard extends StatelessWidget {
                 expand: true,
                 onPressed: busy || u == null ? null : () => onBackup(b),
               ),
+            ),
+          ),
+          Center(
+            child: TextButton(
+              onPressed: busy || u == null ? null : onRestore,
+              style: TextButton.styleFrom(
+                foregroundColor: TintaColors.newsprint,
+                minimumSize: const Size(44, 44),
+              ),
+              child: const Text('Restore from a backup'),
             ),
           ),
           if (onClearExports != null)

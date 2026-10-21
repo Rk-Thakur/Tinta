@@ -22,11 +22,22 @@ class StudioStore extends ChangeNotifier {
 
   static Future<StudioStore> open(Vault vault) async {
     final store = StudioStore(vault: vault);
-    final j = await vault.readJson('studio.json');
+    await store.reload();
+    return store;
+  }
+
+  /// Re-reads palettes and brushes from the vault (after a restore).
+  Future<void> reload() async {
+    _palettes
+      ..clear()
+      ..addAll(builtInPalettes);
+    _activePalette = builtInPalettes.first.id;
+    _mine.clear();
+    final j = await vault?.readJson('studio.json');
     if (j != null) {
       for (final p in (j['palettes'] as List? ?? const [])) {
         final m = p as Map<String, Object?>;
-        store._palettes.add(
+        _palettes.add(
           Palette(
             id: m['id']! as String,
             name: m['name']! as String,
@@ -35,16 +46,14 @@ class StudioStore extends ChangeNotifier {
         );
       }
       final active = j['activePalette'] as String?;
-      if (store._palettes.any((p) => p.id == active)) {
-        store._activePalette = active!;
-      }
+      if (_palettes.any((p) => p.id == active)) _activePalette = active!;
       for (final b in (j['brushes'] as List? ?? const [])) {
         final preset = Codec.presetFrom(b as Map<String, Object?>);
         Brushes.register(preset);
-        store._mine.add(preset);
+        _mine.add(preset);
       }
     }
-    return store;
+    notifyListeners();
   }
 
   void _save() {

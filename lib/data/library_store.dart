@@ -24,34 +24,45 @@ class LibraryStore extends ChangeNotifier {
 
   /// Loads the library from the device. A first launch starts empty.
   static Future<LibraryStore> open(Vault vault) async {
-    final index = await vault.readJson('library.json');
-    if (index == null) {
-      final store = LibraryStore._([], [], vault);
-      store._dirtyIndex = true;
-      await store.flush();
-      await store.refreshFreeSpace();
-      return store;
-    }
-
-    Future<List<SketchPage>> load(List ids) async {
-      final pages = <SketchPage>[];
-      for (final id in ids.cast<String>()) {
-        final j = await vault.readJson(vault.pagePath(id));
-        if (j != null) pages.add(Codec.pageFrom(j));
-      }
-      return pages;
-    }
-
-    final books = <Sketchbook>[];
-    for (final b in (index['books'] as List? ?? const [])) {
-      final j = b as Map<String, Object?>;
-      books.add(Codec.bookFrom(j, await load(j['pages'] as List? ?? const [])));
-    }
-    final loose = await load(index['loose'] as List? ?? const []);
-    final store = LibraryStore._(books, loose, vault);
-    await store._removeUntouchedSamples();
-    await store.refreshFreeSpace();
+    final store = LibraryStore._([], [], vault);
+    await store.reload();
     return store;
+  }
+
+  /// Re-reads everything from the vault (after a restore). A missing index
+  /// means a first launch: the library starts empty.
+  Future<void> reload() async {
+    final v = vault!;
+    _saveTimer?.cancel();
+    _dirtyPages.clear();
+    _dirtyIndex = false;
+    _sketchbooks.clear();
+    _loosePages.clear();
+
+    final index = await v.readJson('library.json');
+    if (index == null) {
+      _dirtyIndex = true;
+      await flush();
+    } else {
+      Future<List<SketchPage>> load(List ids) async {
+        final pages = <SketchPage>[];
+        for (final id in ids.cast<String>()) {
+          final j = await v.readJson(v.pagePath(id));
+          if (j != null) pages.add(Codec.pageFrom(j));
+        }
+        return pages;
+      }
+
+      for (final b in (index['books'] as List? ?? const [])) {
+        final j = b as Map<String, Object?>;
+        _sketchbooks.add(
+          Codec.bookFrom(j, await load(j['pages'] as List? ?? const [])),
+        );
+      }
+      _loosePages.addAll(await load(index['loose'] as List? ?? const []));
+      await _removeUntouchedSamples();
+    }
+    await refreshFreeSpace();
   }
 
   /// Earlier builds seeded sample sketchbooks. Remove every sample page that

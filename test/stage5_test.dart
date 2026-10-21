@@ -1,17 +1,20 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tinta/data/codec.dart';
 import 'package:tinta/data/library_store.dart';
 import 'package:tinta/data/models.dart';
+import 'package:tinta/data/studio_store.dart';
 import 'package:tinta/data/vault.dart';
 import 'package:tinta/drawing/brushes.dart';
 import 'package:tinta/drawing/replay.dart';
 import 'package:tinta/drawing/stroke.dart';
 import 'package:tinta/export/render.dart';
+import 'package:tinta/services/backup.dart';
 import 'package:tinta/services/photo_palette.dart';
 
 import 'fixtures.dart';
@@ -459,4 +462,66 @@ void main() {
       isFalse,
     );
   });
+
+  test(
+    'backup then restore brings the library back; junk zips are refused',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('tinta-vault');
+      addTearDown(() => dir.delete(recursive: true));
+      await Directory('${dir.path}/pages').create();
+      await Directory('${dir.path}/exports').create();
+      final vault = Vault(dir);
+      final library = await LibraryStore.open(vault);
+      final studio = StudioStore(vault: vault);
+      const cover = CoverDesign(
+        color: Color(0xFF2F4BFF),
+        band: Color(0xFF17171C),
+        motif: CoverMotif.dot,
+      );
+      final book = library.createSketchbook(
+        title: 'Keep me',
+        cover: cover,
+        paper: PaperType.smooth,
+        format: PageFormat.a5,
+      );
+      final page = library.addPage(
+        fixturePage('', 0, title: 'Hands'),
+        bookId: book.id,
+      );
+      studio.addPalette('From photo', const [
+        Color(0xFF112233),
+        Color(0xFF445566),
+      ]);
+      final backup = await Backup.create(vault, library);
+
+      // Change everything after the backup.
+      library.deleteSketchbook(book.id);
+      library.createSketchbook(
+        title: 'New stuff',
+        cover: cover,
+        paper: PaperType.kraft,
+        format: PageFormat.a4,
+      );
+      await library.flush();
+
+      final result = await Backup.restore(backup, vault, library, studio);
+      expect(result.sketchbooks, 1);
+      expect(library.sketchbooks.single.title, 'Keep me');
+      expect(library.page(page.id)!.title, 'Hands');
+      expect(studio.palettes.last.name, 'From photo');
+      expect(result.safetyBackup.existsSync(), isTrue);
+
+      final junk = File('${dir.path}/junk.zip')
+        ..writeAsBytesSync(
+          ZipEncoder().encodeBytes(
+            Archive()..add(ArchiveFile.string('notes.txt', 'hi')),
+          ),
+        );
+      expect(
+        () => Backup.restore(junk, vault, library, studio),
+        throwsA(isA<BackupFormatException>()),
+      );
+      expect(library.sketchbooks.single.title, 'Keep me'); // untouched
+    },
+  );
 }
