@@ -39,7 +39,8 @@ extension PaperTone on PaperType {
       isDark ? TintaColors.newsprint : TintaColors.studioInk;
 }
 
-enum CoverMotif { dot, mountains, wordmark }
+/// Cover patterns. Stored by name, so only ever append new ones.
+enum CoverMotif { dot, mountains, wordmark, stripes, waves, grid, arch, checks }
 
 /// How a sketchbook's cover looks: base color, elastic band, and a motif.
 class CoverDesign {

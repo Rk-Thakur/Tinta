@@ -151,11 +151,17 @@ class _SketchbookSheetState extends State<SketchbookSheet> {
             ),
             const SizedBox(height: 10),
             SizedBox(
-              height: 112,
-              child: ListView.separated(
+              // Two rows that scroll sideways: lots of covers, short sheet.
+              height: 112 * 2 + 10,
+              child: GridView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: coverPresets.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  mainAxisExtent: 84,
+                ),
                 itemBuilder: (context, i) {
                   final c = coverPresets[i];
                   final selected = _sameCover(c, _cover);

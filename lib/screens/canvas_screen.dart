@@ -31,6 +31,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
   late LibraryStore _store;
   late SketchPage _page;
   CanvasController? _controller;
+  final _viewport = PageViewport();
 
   @override
   void didChangeDependencies() {
@@ -78,6 +79,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
   @override
   void dispose() {
     _controller?.dispose();
+    _viewport.dispose();
     super.dispose();
   }
 
@@ -106,69 +108,99 @@ class _CanvasScreenState extends State<CanvasScreen> {
         child: Scaffold(
           body: ListenableBuilder(
             listenable: _c,
-            builder: (context, _) => Stack(
-              children: [
-                Column(
-                  children: [
-                    SafeArea(
-                      bottom: false,
-                      child: _TopBar(
-                        page: _store.page(_page.id) ?? _page,
-                        controller: _c,
-                      ),
-                    ),
-                    Expanded(
-                      child: PageCanvas(
-                        controller: _c,
-                        paper: _page.paper,
-                        twoFingerUndo: prefs.twoFingerUndo,
-                        padding: EdgeInsets.fromLTRB(
-                          20,
-                          12,
-                          20,
-                          150 + bottomInset,
+            builder: (context, _) {
+              final dockSpace = 92 + bottomInset;
+              final railLeft = prefs.leftHanded;
+              return Stack(
+                children: [
+                  Column(
+                    children: [
+                      SafeArea(
+                        bottom: false,
+                        child: _TopBar(
+                          page: _store.page(_page.id) ?? _page,
+                          controller: _c,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                Positioned(
-                  left: prefs.leftHanded ? 8 : null,
-                  right: prefs.leftHanded ? null : 8,
-                  top: 0,
-                  bottom: 120 + bottomInset,
-                  child: Center(
-                    child: VerticalSizeSlider(
-                      value: _c.size,
-                      min: CanvasController.minSize,
-                      max: CanvasController.maxSize,
-                      enabled: _c.tool != CanvasTool.lasso,
-                      onChanged: (v) => _c.size = v,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 28 + bottomInset,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 10,
-                    children: [
-                      if (_c.picking)
-                        _PickBar(controller: _c)
-                      else if (_c.selection.isNotEmpty)
-                        _SelectionBar(controller: _c),
-                      _InkRow(
-                        inks: _inks(StudioScope.of(context)),
-                        controller: _c,
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: PageCanvas(
+                                controller: _c,
+                                paper: _page.paper,
+                                twoFingerUndo: prefs.twoFingerUndo,
+                                viewport: _viewport,
+                                // Small margins: the page fills the screen; the
+                                // rail and dock float over its edges.
+                                padding: EdgeInsets.fromLTRB(
+                                  12,
+                                  8,
+                                  12,
+                                  dockSpace,
+                                ),
+                              ),
+                            ),
+                            // Size rail with the inks right below it.
+                            Positioned(
+                              left: railLeft ? 6 : null,
+                              right: railLeft ? null : 6,
+                              top: 8,
+                              bottom: dockSpace,
+                              child: Center(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 10,
+                                    children: [
+                                      VerticalSizeSlider(
+                                        value: _c.size,
+                                        min: CanvasController.minSize,
+                                        max: CanvasController.maxSize,
+                                        enabled: _c.tool != CanvasTool.lasso,
+                                        onChanged: (v) => _c.size = v,
+                                      ),
+                                      _InkRow(
+                                        inks: _inks(StudioScope.of(context)),
+                                        controller: _c,
+                                        vertical: true,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 14,
+                              left: railLeft ? null : 20,
+                              right: railLeft ? 20 : null,
+                              child: _ZoomChip(viewport: _viewport),
+                            ),
+                          ],
+                        ),
                       ),
-                      _Dock(controller: _c),
                     ],
                   ),
-                ),
-              ],
-            ),
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 20 + bottomInset,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 10,
+                      children: [
+                        if (_c.picking)
+                          _PickBar(controller: _c)
+                        else if (_c.selection.isNotEmpty)
+                          _SelectionBar(controller: _c),
+                        _Dock(controller: _c),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -284,22 +316,32 @@ class _TopBar extends StatelessWidget {
 }
 
 class _InkRow extends StatelessWidget {
-  const _InkRow({required this.inks, required this.controller});
+  const _InkRow({
+    required this.inks,
+    required this.controller,
+    this.vertical = false,
+  });
 
   final List<(Color, String)> inks;
   final CanvasController controller;
+
+  /// A column under the size rail (studio layout) or a row.
+  final bool vertical;
 
   @override
   Widget build(BuildContext context) {
     final c = controller;
     final inking = c.tool != CanvasTool.eraser && c.tool != CanvasTool.lasso;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: vertical
+          ? const EdgeInsets.symmetric(vertical: 4)
+          : const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: TintaColors.dock,
         borderRadius: BorderRadius.circular(TintaRadii.pill),
       ),
-      child: Row(
+      child: Flex(
+        direction: vertical ? Axis.vertical : Axis.horizontal,
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final (color, label) in inks)
@@ -471,6 +513,47 @@ class _PickBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// "250%" when zoomed in or out; tap to fit the page again.
+class _ZoomChip extends StatelessWidget {
+  const _ZoomChip({required this.viewport});
+
+  final PageViewport viewport;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: viewport,
+      builder: (context, _) {
+        // Only present while zoomed, so screen readers don't hear a hidden button.
+        if (viewport.isFitted) return const SizedBox.shrink();
+        return Semantics(
+          button: true,
+          label: 'Zoom ${(viewport.zoom * 100).round()} percent. Fit page',
+          excludeSemantics: true,
+          child: GestureDetector(
+            onTap: viewport.reset,
+            child: Container(
+              height: 32,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: TintaColors.dock,
+                borderRadius: BorderRadius.circular(TintaRadii.pill),
+              ),
+              child: Center(
+                widthFactor: 1,
+                child: Text(
+                  '${(viewport.zoom * 100).round()}% · Fit',
+                  style: TintaType.mono(12, color: TintaColors.newsprint),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

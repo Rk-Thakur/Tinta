@@ -178,6 +178,55 @@ class SketchbookCover extends StatelessWidget {
     );
   }
 
+  /// The front face between the spine (8) and the band (x 98): 90 × 164.
+  static const _faceSize = Size(90, 164);
+
+  Widget _face(List<ArtShape> shapes) => Positioned(
+    left: 8,
+    top: 0,
+    width: _faceSize.width,
+    height: _faceSize.height,
+    child: ClipRect(
+      child: ArtView(Artwork(_faceSize, shapes), fit: BoxFit.fill),
+    ),
+  );
+
+  static List<ArtShape> _stripes(Color c) => [
+    for (var i = -4; i < 8; i++)
+      ArtPath(
+        'M${i * 24} 164L${i * 24 + 12} 164L${i * 24 + 12 + 90} 0L${i * 24 + 90} 0Z',
+        fill: c,
+        opacity: 0.9,
+      ),
+  ];
+
+  static List<ArtShape> _waves(Color c) => [
+    for (var y = 30.0; y < 164; y += 26)
+      ArtPath(
+        'M-4 $y c10 -10 20 -10 30 0 s20 10 30 0 s20 -10 30 0 s20 10 30 0',
+        stroke: c,
+        strokeWidth: 4,
+      ),
+  ];
+
+  static List<ArtShape> _dotGrid(Color c) => [
+    for (var y = 18.0; y < 160; y += 18)
+      for (var x = 15.0; x < 90; x += 18) ArtCircle(x, y, 3.2, fill: c),
+  ];
+
+  static List<ArtShape> _arch(Color c) => [
+    ArtCircle(45, 164, 58, fill: c, opacity: 0.35),
+    ArtCircle(45, 164, 40, fill: c, opacity: 0.6),
+    ArtCircle(45, 164, 22, fill: c),
+  ];
+
+  static List<ArtShape> _checks(Color c) => [
+    for (var row = 0; row < 11; row++)
+      for (var col = 0; col < 6; col++)
+        if ((row + col).isEven && row >= 5)
+          ArtRect(col * 15.0, row * 15.0, 15, 15, fill: c),
+  ];
+
   List<Widget> _motif() {
     return switch (cover.motif) {
       CoverMotif.dot => [
@@ -206,6 +255,11 @@ class SketchbookCover extends StatelessWidget {
           ),
         ),
       ],
+      CoverMotif.stripes => [_face(_stripes(cover.motifColor))],
+      CoverMotif.waves => [_face(_waves(cover.motifColor))],
+      CoverMotif.grid => [_face(_dotGrid(cover.motifColor))],
+      CoverMotif.arch => [_face(_arch(cover.motifColor))],
+      CoverMotif.checks => [_face(_checks(cover.motifColor))],
       CoverMotif.wordmark => [
         // Between the spine and the band; long words shrink to fit.
         Positioned(
@@ -287,6 +341,7 @@ String _wordmarkFrom(String? title) {
 
 /// Covers offered when making a sketchbook. Wordmark covers print the title.
 const coverPresets = <CoverDesign>[
+  // The design kit's three, first.
   CoverDesign(
     color: TintaColors.risoBlue,
     band: TintaColors.studioInk,
@@ -304,6 +359,7 @@ const coverPresets = <CoverDesign>[
     motif: CoverMotif.wordmark,
     motifColor: TintaColors.newsprint,
   ),
+  // Riso inks.
   CoverDesign(
     color: TintaColors.sun,
     band: TintaColors.risoBlue,
@@ -317,9 +373,125 @@ const coverPresets = <CoverDesign>[
     motifColor: TintaColors.sun,
   ),
   CoverDesign(
-    color: Color(0xFF2E9E6A),
+    color: _green,
     band: TintaColors.studioInk,
     motif: CoverMotif.wordmark,
     motifColor: TintaColors.newsprint,
   ),
+  CoverDesign(
+    color: TintaColors.risoBlue,
+    band: TintaColors.sun,
+    motif: CoverMotif.stripes,
+    motifColor: TintaColors.fluoroOrange,
+  ),
+  CoverDesign(
+    color: TintaColors.fluoroOrange,
+    band: TintaColors.risoBlue,
+    motif: CoverMotif.waves,
+    motifColor: TintaColors.risoBlue,
+  ),
+  CoverDesign(
+    color: TintaColors.newsprint,
+    band: TintaColors.fluoroOrange,
+    motif: CoverMotif.grid,
+    motifColor: TintaColors.risoBlue,
+  ),
+  CoverDesign(
+    color: TintaColors.studioInk,
+    band: TintaColors.fluoroOrange,
+    motif: CoverMotif.arch,
+    motifColor: TintaColors.sun,
+  ),
+  CoverDesign(
+    color: TintaColors.sun,
+    band: TintaColors.studioInk,
+    motif: CoverMotif.checks,
+    motifColor: TintaColors.studioInk,
+  ),
+  CoverDesign(
+    color: _pink,
+    band: TintaColors.studioInk,
+    motif: CoverMotif.dot,
+    motifColor: TintaColors.sun,
+  ),
+  // Softer, paper-like.
+  CoverDesign(
+    color: TintaColors.paperKraft,
+    band: TintaColors.studioInk,
+    motif: CoverMotif.stripes,
+    motifColor: TintaColors.studioInk,
+  ),
+  CoverDesign(
+    color: TintaColors.paperToned,
+    band: TintaColors.risoBlue,
+    motif: CoverMotif.waves,
+    motifColor: TintaColors.risoBlue,
+  ),
+  CoverDesign(
+    color: _slate,
+    band: TintaColors.sun,
+    motif: CoverMotif.grid,
+    motifColor: TintaColors.newsprint,
+  ),
+  CoverDesign(
+    color: _sage,
+    band: TintaColors.studioInk,
+    motif: CoverMotif.arch,
+    motifColor: TintaColors.newsprint,
+  ),
+  CoverDesign(
+    color: _terracotta,
+    band: TintaColors.newsprint,
+    motif: CoverMotif.mountains,
+    motifColor: TintaColors.newsprint,
+  ),
+  CoverDesign(
+    color: TintaColors.newsprint,
+    band: TintaColors.studioInk,
+    motif: CoverMotif.wordmark,
+    motifColor: TintaColors.studioInk,
+  ),
+  // Bold.
+  CoverDesign(
+    color: _green,
+    band: TintaColors.sun,
+    motif: CoverMotif.checks,
+    motifColor: TintaColors.newsprint,
+  ),
+  CoverDesign(
+    color: TintaColors.overprintViolet,
+    band: TintaColors.newsprint,
+    motif: CoverMotif.stripes,
+    motifColor: _pink,
+  ),
+  CoverDesign(
+    color: TintaColors.studioInk,
+    band: TintaColors.risoBlue,
+    motif: CoverMotif.waves,
+    motifColor: TintaColors.fluoroOrange,
+  ),
+  CoverDesign(
+    color: _pink,
+    band: TintaColors.risoBlue,
+    motif: CoverMotif.grid,
+    motifColor: TintaColors.studioInk,
+  ),
+  CoverDesign(
+    color: TintaColors.risoBlue,
+    band: TintaColors.newsprint,
+    motif: CoverMotif.arch,
+    motifColor: TintaColors.fluoroOrange,
+  ),
+  CoverDesign(
+    color: _terracotta,
+    band: TintaColors.studioInk,
+    motif: CoverMotif.wordmark,
+    motifColor: TintaColors.sun,
+  ),
 ];
+
+const _green = Color(0xFF2E9E6A);
+const _pink = Color(0xFFE8467C);
+const _slate = Color(0xFF4E6170);
+const _sage = Color(0xFF8FA58A);
+const _terracotta = Color(0xFFC4572E);

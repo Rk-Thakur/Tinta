@@ -15,6 +15,24 @@ import 'stroke_renderer.dart';
 ///
 /// Once an Apple Pencil (or any stylus) is seen, fingers only navigate, so a
 /// resting palm never draws.
+/// Zoom level of a [PageCanvas] (1 = page fits the screen), and a way for
+/// the surrounding UI to reset it.
+class PageViewport extends ChangeNotifier {
+  double _zoom = 1;
+  VoidCallback? _reset;
+
+  double get zoom => _zoom;
+  bool get isFitted => (_zoom - 1).abs() < 0.01;
+
+  void reset() => _reset?.call();
+
+  void _report(double zoom) {
+    if ((zoom - _zoom).abs() < 0.001) return;
+    _zoom = zoom;
+    notifyListeners();
+  }
+}
+
 class PageCanvas extends StatefulWidget {
   const PageCanvas({
     super.key,
@@ -22,7 +40,11 @@ class PageCanvas extends StatefulWidget {
     required this.paper,
     this.padding = const EdgeInsets.all(20),
     this.twoFingerUndo = true,
+    this.viewport,
   });
+
+  /// Reports zoom changes and lets the screen reset to fit.
+  final PageViewport? viewport;
 
   final CanvasController controller;
   final PaperType paper;
@@ -34,6 +56,21 @@ class PageCanvas extends StatefulWidget {
 }
 
 class _PageCanvasState extends State<PageCanvas> {
+  @override
+  void initState() {
+    super.initState();
+    widget.viewport?._reset = _resetView;
+  }
+
+  @override
+  void didUpdateWidget(PageCanvas old) {
+    super.didUpdateWidget(old);
+    if (old.viewport != widget.viewport) widget.viewport?._reset = _resetView;
+  }
+
+  /// Back to the whole page, fitted.
+  void _resetView() => setState(() => _fittedFor = null);
+
   // View transform: screen = origin + page * scale.
   Offset _origin = Offset.zero;
   double _scale = 1;
@@ -69,6 +106,10 @@ class _PageCanvasState extends State<PageCanvas> {
       widget.padding.top + (avail.height - drawn.height) / 2,
     );
     _fittedFor = box;
+    // Runs during build: tell listeners after this frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.viewport?._report(1);
+    });
   }
 
   Offset _toPage(Offset local) => (local - _origin) / _scale;
@@ -155,6 +196,11 @@ class _PageCanvasState extends State<PageCanvas> {
   void _move(PointerMoveEvent e) {
     if (e.pointer == _drawingPointer) {
       _c.pointerMove(_toPage(e.localPosition), pressure: _pressure(e));
+      // Keep a drawing finger's position current, so a pinch that starts
+      // when the second finger lands measures from where it really is.
+      if (_touches.containsKey(e.pointer)) {
+        _touches[e.pointer] = e.localPosition;
+      }
       return;
     }
     if (!_touches.containsKey(e.pointer)) return;
@@ -174,6 +220,7 @@ class _PageCanvasState extends State<PageCanvas> {
         _scale = next;
         _origin = focal - anchor * next;
       });
+      widget.viewport?._report(_scale / _fitScale);
     } else if (_touches.length == 1 && _stylusMode) {
       // With a stylus around, one finger pans.
       setState(() => _origin += e.delta);
