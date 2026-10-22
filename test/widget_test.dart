@@ -270,13 +270,56 @@ void main() {
 
   testWidgets('daily prompt opens a new page without errors', (tester) async {
     final library = LibraryStore.memory();
-    await pumpPhone(tester, TintaApp(library: library, initialRoute: Routes.library));
+    await pumpPhone(
+      tester,
+      TintaApp(library: library, initialRoute: Routes.library),
+    );
     final prompt = library.dailyPrompt.text;
     await tester.tap(find.bySemanticsLabel('Start prompt'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text(prompt), findsOneWidget); // the page is titled with the prompt
+    expect(
+      find.text(prompt),
+      findsOneWidget,
+    ); // the page is titled with the prompt
     expect(library.loosePages.single.title, prompt);
+  });
+
+  testWidgets('leaving a page without drawing removes it; drawn pages stay', (
+    tester,
+  ) async {
+    final library = LibraryStore.memory();
+    await pumpPhone(
+      tester,
+      TintaApp(library: library, initialRoute: Routes.library),
+    );
+
+    // Open the prompt, draw nothing, go back.
+    await tester.tap(find.bySemanticsLabel('Start prompt'));
+    await tester.pumpAndSettle();
+    expect(library.loosePages, hasLength(1));
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await tester.pumpAndSettle();
+    expect(library.loosePages, isEmpty);
+    expect(tester.takeException(), isNull);
+
+    // Open it again, draw, go back: kept.
+    await tester.tap(find.bySemanticsLabel('Start prompt'));
+    await tester.pumpAndSettle();
+    final g = await tester.startGesture(
+      tester.getCenter(find.byType(PageCanvas)),
+    );
+    for (var i = 0; i < 6; i++) {
+      await g.moveBy(const Offset(8, 4));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await g.up();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await tester.pumpAndSettle();
+    expect(library.loosePages, hasLength(1));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('every cover design renders', (tester) async {

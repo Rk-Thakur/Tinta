@@ -61,8 +61,25 @@ class LibraryStore extends ChangeNotifier {
       }
       _loosePages.addAll(await load(index['loose'] as List? ?? const []));
       await _removeUntouchedSamples();
+      await _removeBlankPages();
     }
     await refreshFreeSpace();
+  }
+
+  /// Pages with nothing drawn (left behind when the app closed with one
+  /// open) aren't kept.
+  Future<void> _removeBlankPages() async {
+    final blank = [
+      for (final p in _allPages)
+        if (p.isBlank) p.id,
+    ];
+    if (blank.isEmpty) return;
+    for (final id in blank) {
+      _removePage(id);
+      _dirtyPages.add(id);
+    }
+    _dirtyIndex = true;
+    await flush();
   }
 
   /// Earlier builds seeded sample sketchbooks. Remove every sample page that
@@ -368,8 +385,14 @@ class LibraryStore extends ChangeNotifier {
     }
   }
 
+  bool _disposed = false;
+
+  /// True once the app has torn the store down (late callbacks check this).
+  bool get isDisposed => _disposed;
+
   @override
   void dispose() {
+    _disposed = true;
     _saveTimer?.cancel();
     super.dispose();
   }

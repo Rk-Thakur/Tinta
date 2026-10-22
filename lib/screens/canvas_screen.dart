@@ -90,6 +90,15 @@ class _CanvasScreenState extends State<CanvasScreen> {
 
   @override
   void dispose() {
+    // Nothing drawn: don't leave an empty page in the library. Deferred to
+    // after this frame, since notifying listeners while unmounting isn't allowed.
+    final store = _store;
+    final id = _page.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!store.isDisposed && (store.page(id)?.isBlank ?? false)) {
+        store.deletePage(id);
+      }
+    });
     _showChromeTimer?.cancel();
     _controller?.removeListener(_onControllerChanged);
     _controller?.dispose();

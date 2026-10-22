@@ -524,4 +524,45 @@ void main() {
       expect(library.sketchbooks.single.title, 'Keep me'); // untouched
     },
   );
+
+  test('empty pages left on disk are removed at launch', () async {
+    final dir = await Directory.systemTemp.createTemp('tinta-vault');
+    addTearDown(() => dir.delete(recursive: true));
+    await Directory('${dir.path}/pages').create();
+    await Directory('${dir.path}/exports').create();
+    final vault = Vault(dir);
+    final store = await LibraryStore.open(vault);
+    final book = store.createSketchbook(
+      title: 'B',
+      cover: const CoverDesign(
+        color: Color(0xFF000000),
+        band: Color(0xFF000000),
+        motif: CoverMotif.dot,
+      ),
+      paper: PaperType.smooth,
+      format: PageFormat.a5,
+    );
+    final drawn = store.addPage(
+      fixturePage('', 0, title: 'Drawn'),
+      bookId: book.id,
+    );
+    final blank = store.addPage(
+      const SketchPage(id: '', number: 0, paper: PaperType.smooth),
+      bookId: book.id,
+    );
+    final blankLoose = store.addPage(
+      const SketchPage(id: '', number: 0, paper: PaperType.smooth),
+    );
+    await store.flush();
+
+    final again = await LibraryStore.open(vault);
+    expect(again.sketchbook(book.id)!.pages.map((p) => p.id), [drawn.id]);
+    expect(again.page(blank.id), isNull);
+    expect(again.page(blankLoose.id), isNull);
+    expect(
+      File('${dir.path}/${vault.pagePath(blank.id)}').existsSync(),
+      isFalse,
+    );
+    expect(again.sketchbook(book.id), isNotNull); // books stay, even if emptied
+  });
 }
