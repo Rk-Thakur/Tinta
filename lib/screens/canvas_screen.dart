@@ -123,117 +123,131 @@ class _CanvasScreenState extends State<CanvasScreen> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final prefs = PrefsScope.of(context);
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Theme(
-        data: Theme.of(context)
-            .copyWith(scaffoldBackgroundColor: TintaColors.studioInk),
-        child: Scaffold(
-          body: ListenableBuilder(
-            listenable: _c,
-            builder: (context, _) {
-              // The page fills the screen from just under the status bar to
-              // just above the home indicator. Top bar, rail and dock float
-              // over its edges and slide away while ink goes down.
-              final topInset = MediaQuery.paddingOf(context).top;
-              final pageTop = topInset + 8;
-              final pageBottom = 16 + bottomInset;
-              final topBarSpace = topInset + 64;
-              final dockSpace = 92 + bottomInset;
-              final railLeft = prefs.leftHanded;
-              final hidden = _chromeHidden;
-              return Stack(
-                children: [
-                  Positioned.fill(
-                    child: PageCanvas(
-                      controller: _c,
-                      paper: _page.paper,
-                      twoFingerUndo: prefs.twoFingerUndo,
-                      viewport: _viewport,
-                      padding: EdgeInsets.fromLTRB(12, pageTop, 12, pageBottom),
-                    ),
-                  ),
-                  // Top bar.
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    child: _SlideAway(
-                      hidden: hidden,
-                      offset: const Offset(0, -1.4),
-                      child: SafeArea(
-                        bottom: false,
-                        child: _TopBar(
-                          page: _store.page(_page.id) ?? _page,
-                          controller: _c,
+    return PopScope(
+      // Leaving with nothing drawn: drop the page right away, before the
+      // library slides back in (dispose() is the fallback).
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop && (_store.page(_page.id)?.isBlank ?? false)) {
+          _store.deletePage(_page.id);
+        }
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Theme(
+          data: Theme.of(context)
+              .copyWith(scaffoldBackgroundColor: TintaColors.studioInk),
+          child: Scaffold(
+            body: ListenableBuilder(
+              listenable: _c,
+              builder: (context, _) {
+                // The page fills the screen from just under the status bar to
+                // just above the home indicator. Top bar, rail and dock float
+                // over its edges and slide away while ink goes down.
+                final topInset = MediaQuery.paddingOf(context).top;
+                final pageTop = topInset + 8;
+                final pageBottom = 16 + bottomInset;
+                final topBarSpace = topInset + 64;
+                final dockSpace = 92 + bottomInset;
+                final railLeft = prefs.leftHanded;
+                final hidden = _chromeHidden;
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: PageCanvas(
+                        controller: _c,
+                        paper: _page.paper,
+                        twoFingerUndo: prefs.twoFingerUndo,
+                        viewport: _viewport,
+                        padding: EdgeInsets.fromLTRB(
+                          12,
+                          pageTop,
+                          12,
+                          pageBottom,
                         ),
                       ),
                     ),
-                  ),
-                  // Size rail with the inks right below it.
-                  Positioned(
-                    left: railLeft ? 6 : null,
-                    right: railLeft ? null : 6,
-                    top: topBarSpace,
-                    bottom: dockSpace,
-                    child: _SlideAway(
-                      hidden: hidden,
-                      offset: Offset(railLeft ? -1.4 : 1.4, 0),
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 10,
-                            children: [
-                              VerticalSizeSlider(
-                                value: _c.size,
-                                min: CanvasController.minSize,
-                                max: CanvasController.maxSize,
-                                enabled: _c.tool != CanvasTool.lasso,
-                                onChanged: (v) => _c.size = v,
-                              ),
-                              _InkRow(
-                                inks: _inks(StudioScope.of(context)),
-                                controller: _c,
-                                vertical: true,
-                              ),
-                            ],
+                    // Top bar.
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      child: _SlideAway(
+                        hidden: hidden,
+                        offset: const Offset(0, -1.4),
+                        child: SafeArea(
+                          bottom: false,
+                          child: _TopBar(
+                            page: _store.page(_page.id) ?? _page,
+                            controller: _c,
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: topBarSpace + 6,
-                    left: railLeft ? null : 20,
-                    right: railLeft ? 20 : null,
-                    child: _ZoomChip(viewport: _viewport),
-                  ),
-                  // Dock (and the lasso / eyedropper bars above it).
-                  Positioned(
-                    left: 16,
-                    right: 16,
-                    bottom: 20 + bottomInset,
-                    child: _SlideAway(
-                      hidden: hidden,
-                      offset: const Offset(0, 1.6),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 10,
-                        children: [
-                          if (_c.picking)
-                            _PickBar(controller: _c)
-                          else if (_c.selection.isNotEmpty)
-                            _SelectionBar(controller: _c),
-                          _Dock(controller: _c),
-                        ],
+                    // Size rail with the inks right below it.
+                    Positioned(
+                      left: railLeft ? 6 : null,
+                      right: railLeft ? null : 6,
+                      top: topBarSpace,
+                      bottom: dockSpace,
+                      child: _SlideAway(
+                        hidden: hidden,
+                        offset: Offset(railLeft ? -1.4 : 1.4, 0),
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 10,
+                              children: [
+                                VerticalSizeSlider(
+                                  value: _c.size,
+                                  min: CanvasController.minSize,
+                                  max: CanvasController.maxSize,
+                                  enabled: _c.tool != CanvasTool.lasso,
+                                  onChanged: (v) => _c.size = v,
+                                ),
+                                _InkRow(
+                                  inks: _inks(StudioScope.of(context)),
+                                  controller: _c,
+                                  vertical: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            },
+                    Positioned(
+                      top: topBarSpace + 6,
+                      left: railLeft ? null : 20,
+                      right: railLeft ? 20 : null,
+                      child: _ZoomChip(viewport: _viewport),
+                    ),
+                    // Dock (and the lasso / eyedropper bars above it).
+                    Positioned(
+                      left: 16,
+                      right: 16,
+                      bottom: 20 + bottomInset,
+                      child: _SlideAway(
+                        hidden: hidden,
+                        offset: const Offset(0, 1.6),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 10,
+                          children: [
+                            if (_c.picking)
+                              _PickBar(controller: _c)
+                            else if (_c.selection.isNotEmpty)
+                              _SelectionBar(controller: _c),
+                            _Dock(controller: _c),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

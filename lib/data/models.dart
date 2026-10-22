@@ -168,6 +168,14 @@ class Sketchbook {
 
   int get pageCount => pages.length;
 
+  /// Pages with something drawn. Lists and counts show only these, so a
+  /// page just opened (or about to be discarded) never flickers in.
+  List<SketchPage> get drawnPages => [
+    for (final p in pages)
+      if (!p.isBlank) p,
+  ];
+  int get drawnCount => pages.where((p) => !p.isBlank).length;
+
   /// Total drawing time across the book's pages.
   Duration get timeDrawn =>
       pages.fold(Duration.zero, (sum, p) => sum + p.activeTime());

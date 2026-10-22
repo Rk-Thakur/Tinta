@@ -171,8 +171,8 @@ class _Header extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       _Stat(
-                        value: '${book.pageCount}',
-                        label: book.pageCount == 1 ? 'page' : 'pages',
+                        value: '${book.drawnCount}',
+                        label: book.drawnCount == 1 ? 'page' : 'pages',
                         background: statBg,
                       ),
                       _Stat(
@@ -280,6 +280,7 @@ class _PagesGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pages = book.drawnPages;
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: TintaSpace.gutter),
       sliver: SliverGrid.builder(
@@ -289,10 +290,10 @@ class _PagesGrid extends StatelessWidget {
           crossAxisSpacing: 14,
           mainAxisExtent: 196 + 6 + 20,
         ),
-        itemCount: book.pages.length + 1,
+        itemCount: pages.length + 1,
         itemBuilder: (context, i) {
           if (i == 0) return _TurnPageTile(bookId: book.id);
-          final page = book.pages[i - 1];
+          final page = pages[i - 1];
           return _PageCell(book: book, page: page);
         },
       ),
@@ -447,7 +448,7 @@ class _FlipThroughState extends State<_FlipThrough> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = widget.book.pages;
+    final pages = widget.book.drawnPages;
     if (pages.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(40),

@@ -322,6 +322,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('an empty page never flickers into Loose pages', (tester) async {
+    final library = LibraryStore.memory();
+    await pumpPhone(
+      tester,
+      TintaApp(library: library, initialRoute: Routes.library),
+    );
+    final emptyState = find.textContaining(
+      'Pages you start with',
+      skipOffstage: false,
+    );
+
+    await tester.tap(find.bySemanticsLabel('Start prompt'));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 40)); // mid push animation
+      expect(emptyState, findsOneWidget);
+    }
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.bySemanticsLabel('Back'));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 40)); // mid pop animation
+      expect(emptyState, findsOneWidget);
+    }
+    await tester.pumpAndSettle();
+    expect(emptyState, findsOneWidget);
+    expect(library.loosePages, isEmpty);
+  });
+
   testWidgets('every cover design renders', (tester) async {
     await pumpPhone(
       tester,

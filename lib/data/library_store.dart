@@ -121,6 +121,12 @@ class LibraryStore extends ChangeNotifier {
 
   List<Sketchbook> get sketchbooks => List.unmodifiable(_sketchbooks);
   List<SketchPage> get loosePages => List.unmodifiable(_loosePages);
+
+  /// Loose pages with something drawn (what the Library shows).
+  List<SketchPage> get drawnLoosePages => [
+    for (final p in _loosePages)
+      if (!p.isBlank) p,
+  ];
   DailyPrompt get dailyPrompt => promptFor(DateTime.now());
 
   Iterable<SketchPage> get _allPages => [
