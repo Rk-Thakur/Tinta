@@ -63,6 +63,48 @@ abstract final class TintaTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
+      // Material pickers and toasts in Tinta's colors and shapes.
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: TintaColors.newsprint,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TintaRadii.sheet),
+        ),
+        hourMinuteColor: TintaColors.surface,
+        hourMinuteTextColor: TintaColors.studioInk,
+        dialBackgroundColor: TintaColors.segmentTrack,
+        dialHandColor: TintaColors.risoBlue,
+        dayPeriodColor: TintaColors.sun,
+        dayPeriodTextColor: TintaColors.studioInk,
+        entryModeIconColor: TintaColors.ink2,
+        helpTextStyle: TintaType.label(),
+        hourMinuteTextStyle: TintaType.display(44),
+        dayPeriodTextStyle: TintaType.body(14, weight: FontWeight.w700),
+        cancelButtonStyle: TextButton.styleFrom(
+          foregroundColor: TintaColors.ink2,
+          textStyle: TintaType.body(15),
+        ),
+        confirmButtonStyle: TextButton.styleFrom(
+          foregroundColor: TintaColors.risoBlue,
+          textStyle: TintaType.body(15, weight: FontWeight.w700),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: TintaColors.studioInk,
+        contentTextStyle: TintaType.body(14, color: TintaColors.newsprint),
+        actionTextColor: TintaColors.sun,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TintaRadii.md),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: TintaColors.newsprint,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TintaRadii.sheet),
+        ),
+        titleTextStyle: TintaType.display(24, color: TintaColors.studioInk),
+        contentTextStyle: TintaType.body(15, color: TintaColors.ink2),
+      ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: scheme.brightness == Brightness.dark
             ? TintaColors.dock

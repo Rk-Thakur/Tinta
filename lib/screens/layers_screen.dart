@@ -8,6 +8,7 @@ import '../drawing/stroke_renderer.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
 import '../ui/widgets/paper.dart';
+import '../ui/widgets/dialogs.dart';
 import '../ui/widgets/widgets.dart';
 
 class LayersArgs {
@@ -364,33 +365,14 @@ class _LayerPanel extends StatelessWidget {
   final CanvasController controller;
 
   Future<void> _rename(BuildContext context, int i, PageLayer layer) async {
-    final text = TextEditingController(text: layer.name);
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rename layer'),
-        content: TextField(
-          controller: text,
-          autofocus: true,
-          textCapitalization: TextCapitalization.sentences,
-          onSubmitted: (v) => Navigator.pop(context, v),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, text.text),
-            child: const Text('Rename'),
-          ),
-        ],
-      ),
+    final name = await promptText(
+      context,
+      title: 'Rename layer',
+      initial: layer.name,
+      hint: 'Layer name',
     );
-    text.dispose();
-    final trimmed = name?.trim() ?? '';
-    if (trimmed.isNotEmpty && trimmed != layer.name) {
-      controller.updateLayer(i, layer.copyWith(name: trimmed));
+    if (name != null && name != layer.name) {
+      controller.updateLayer(i, layer.copyWith(name: name));
     }
   }
 

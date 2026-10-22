@@ -68,7 +68,7 @@ class PillButton extends StatelessWidget {
         ],
       ],
     );
-    return SizedBox(
+    final button = SizedBox(
       height: height,
       width: expand ? double.infinity : null,
       child: Material(
@@ -87,6 +87,11 @@ class PillButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+    // Disabled: faded and announced as such.
+    return Semantics(
+      enabled: onPressed != null,
+      child: Opacity(opacity: onPressed == null ? 0.4 : 1, child: button),
     );
   }
 }
