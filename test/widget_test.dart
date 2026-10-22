@@ -87,7 +87,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
     await gesture.up();
-    await tester.pump();
+    // The top bar slid away while drawing; it returns shortly after.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
     expect(
       tester.getSemantics(undo).flagsCollection.isEnabled,
       Tristate.isTrue,
@@ -210,6 +212,15 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
     expect(railOffset().dx, greaterThan(1)); // slid off to the right
+    final topBar = tester.widget<AnimatedSlide>(
+      find
+          .ancestor(
+            of: find.bySemanticsLabel('Undo', skipOffstage: false),
+            matching: find.byType(AnimatedSlide),
+          )
+          .first,
+    );
+    expect(topBar.offset.dy, lessThan(0)); // top bar slid up
     await g.up();
     await tester.pump(const Duration(milliseconds: 300));
     expect(railOffset().dx, greaterThan(1)); // still away between strokes
