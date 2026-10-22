@@ -12,8 +12,15 @@ class MainNav extends StatelessWidget {
 
   final MainTab current;
 
-  /// Height above the home-indicator inset.
-  static const height = 72.0;
+  static const height = 68.0;
+
+  /// Gap from the screen edges (sides, and bottom when there's no home
+  /// indicator); with one, the bar sits just above it.
+  static const margin = 16.0;
+  static double bottomOffset(BuildContext context) {
+    final inset = MediaQuery.paddingOf(context).bottom;
+    return inset > 0 ? inset : margin;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,25 +41,18 @@ class MainNav extends StatelessWidget {
       container: true,
       explicitChildNodes: true,
       label: 'Main',
-      // Docked to the bottom edge: rounded on top, home-indicator space inside.
+      // A rounded pill near the bottom edge, with space all around it.
       child: Container(
-        height: height + MediaQuery.paddingOf(context).bottom,
-        padding: EdgeInsets.fromLTRB(
-          16,
-          0,
-          16,
-          MediaQuery.paddingOf(context).bottom,
-        ),
-        decoration: const BoxDecoration(
+        height: height,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
           color: TintaColors.studioInk,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(TintaRadii.dock),
-          ),
-          boxShadow: [
+          borderRadius: BorderRadius.circular(TintaRadii.dock),
+          boxShadow: const [
             BoxShadow(
-              color: Color(0x26000000),
-              blurRadius: 20,
-              offset: Offset(0, -4),
+              color: Color(0x33000000),
+              blurRadius: 24,
+              offset: Offset(0, 8),
             ),
           ],
         ),

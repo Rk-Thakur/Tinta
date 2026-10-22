@@ -31,7 +31,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
           (b) => b.title.toLowerCase().contains(_query.trim().toLowerCase()),
         )
         .toList();
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
       body: Stack(
@@ -41,7 +40,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: ListView(
               padding: EdgeInsets.only(
                 top: 8,
-                bottom: MainNav.height + bottomInset + 20,
+                bottom: MainNav.height + MainNav.bottomOffset(context) + 20,
               ),
               children: [
                 Padding(
@@ -182,11 +181,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ],
             ),
           ),
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: MainNav(current: MainTab.library),
+          Positioned(
+            left: MainNav.margin,
+            right: MainNav.margin,
+            bottom: MainNav.bottomOffset(context),
+            child: const MainNav(current: MainTab.library),
           ),
         ],
       ),
