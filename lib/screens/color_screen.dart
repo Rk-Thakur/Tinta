@@ -205,7 +205,8 @@ class _ColorScreenState extends State<ColorScreen> {
               if (risoInks.length == 2) ...[
                 const SizedBox(height: 10),
                 Text(
-                  'Riso page: picking a color replaces the selected ink, so the page keeps two inks.',
+                  'Riso page: it prints with two inks. Choosing a palette uses its first two colors; '
+                  'tapping a color swaps the selected ink.',
                   style: TintaType.body13,
                 ),
               ],
@@ -276,7 +277,14 @@ class _ColorScreenState extends State<ColorScreen> {
                 child: _PaletteCard(
                   palette: p,
                   active: p.id == studio.activePalette.id,
-                  onActivate: () => studio.activePalette = p,
+                  onActivate: () {
+                    studio.activePalette = p;
+                    // On a riso page the palette's first two colors become its inks.
+                    if (risoInks.length == 2) {
+                      c!.useRisoPalette(p.colors);
+                      setState(() => _hsv = HSVColor.fromColor(c.color));
+                    }
+                  },
                   onPick: c == null ? null : _pick,
                   selected: c?.color,
                   onEdit: studio.isUserPalette(p)

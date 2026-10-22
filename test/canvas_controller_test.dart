@@ -274,6 +274,35 @@ void main() {
       expect(saved.single, hasLength(2));
     });
 
+    test('choosing a palette on a riso page takes its first two colors', () {
+      final saved = <List<Color>>[];
+      final c = CanvasController(
+        layers: SketchPage.defaultLayers,
+        pageSize: const Size(400, 565),
+        riso: true,
+        ink: SketchPage.defaultRisoInks.first,
+        risoInks: SketchPage.defaultRisoInks,
+        onInksChanged: saved.add,
+      );
+      c.useRisoPalette(const [
+        Color(0xFFFFD23F),
+        Color(0xFF2E9E6A),
+        Color(0xFFE8467C),
+      ]);
+      expect(c.risoInks, const [Color(0xFFFFD23F), Color(0xFF2E9E6A)]);
+      expect(c.color, const Color(0xFFFFD23F));
+      expect(saved, hasLength(1));
+
+      c.useRisoPalette(const [Color(0xFF112233)]); // one color: first ink only
+      expect(c.risoInks, const [Color(0xFF112233), Color(0xFF2E9E6A)]);
+    });
+
+    test('useRisoPalette does nothing on normal pages', () {
+      final c = _controller();
+      c.useRisoPalette(const [Color(0xFFFFD23F)]);
+      expect(c.risoInks, isEmpty);
+    });
+
     test('on normal pages useColor only sets the color', () {
       final c = _controller();
       c.useColor(const Color(0xFFE8467C));

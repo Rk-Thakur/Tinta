@@ -220,6 +220,16 @@ class CanvasController extends ChangeNotifier {
 
   /// On a riso page, swaps the selected ink for [c] (keeping two inks);
   /// elsewhere just sets the color.
+  /// On a riso page, adopts a palette: its first two colors become the
+  /// page's inks (a one-color palette replaces just the first ink).
+  void useRisoPalette(List<Color> colors) {
+    if (_risoInks.length != 2 || colors.isEmpty) return;
+    _risoInks[0] = colors[0];
+    if (colors.length > 1) _risoInks[1] = colors[1];
+    onInksChanged?.call(List.unmodifiable(_risoInks));
+    color = _risoInks[0];
+  }
+
   void useColor(Color c) {
     if (_risoInks.length == 2) {
       final slot = _risoInks.indexOf(_color);

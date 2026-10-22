@@ -229,6 +229,45 @@ void main() {
     expect(railOffset(), Offset.zero);
   });
 
+  testWidgets('choosing a palette on a riso page changes its two inks', (
+    tester,
+  ) async {
+    await pumpPhone(
+      tester,
+      TintaApp(library: LibraryStore.memory(), initialRoute: Routes.library),
+    );
+    await tester.tap(find.bySemanticsLabel('New canvas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create page')); // riso is on by default
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Ink #2F4BFF'), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('More colors'));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Choosing a palette uses its first two colors'),
+      findsOneWidget,
+    );
+    await tester.dragUntilVisible(
+      find.text('Market day'),
+      find.byType(ListView),
+      const Offset(0, -200),
+    );
+    await tester.tap(find.text('Market day'));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byType(ListView),
+      const Offset(0, 2000),
+    ); // back to the top
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Back to canvas'));
+    await tester.pumpAndSettle();
+
+    expect(find.bySemanticsLabel('Ink #FFD23F'), findsOneWidget);
+    expect(find.bySemanticsLabel('Ink #2E9E6A'), findsOneWidget);
+    expect(find.bySemanticsLabel('Ink #2F4BFF'), findsNothing);
+  });
+
   testWidgets('every cover design renders', (tester) async {
     await pumpPhone(
       tester,
