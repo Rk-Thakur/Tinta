@@ -18,8 +18,12 @@ class _Slide {
     required this.title,
     required this.body,
     required this.art,
+    this.keywords = const ['No sign‑up', 'Works offline', 'Private by default'],
   });
   final String badge;
+
+  /// The pill keywords under the copy.
+  final List<String> keywords;
   final TintaIcons badgeIcon;
   final String title;
   final String body;
@@ -32,6 +36,7 @@ const _slides = [
     badge: 'Airplane mode: fine',
     title: 'Draw anywhere.\nEven at 30,000 ft.',
     body: 'Every stroke lives on your phone. No account, no cloud, nothing to load.',
+    keywords: ['Two‑ink riso', 'Every stroke replays', 'Real paper grain'],
     art: Artwork(Size(342, 340), [
       ArtCircle(140, 150, 96, fill: TintaColors.risoBlue, opacity: 0.9),
       ArtCircle(
@@ -309,14 +314,10 @@ class _SlideView extends StatelessWidget {
             style: TintaType.body(16, color: TintaColors.ink2, height: 1.5),
           ),
           const SizedBox(height: 24),
-          const Wrap(
+          Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
-              _Promise('No sign‑up'),
-              _Promise('Works offline'),
-              _Promise('Private by default'),
-            ],
+            children: [for (final k in slide.keywords) _Promise(k)],
           ),
         ],
       ),
