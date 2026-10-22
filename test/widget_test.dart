@@ -9,6 +9,7 @@ import 'package:tinta/data/library_store.dart';
 import 'package:tinta/data/models.dart';
 import 'package:tinta/drawing/page_canvas.dart';
 import 'package:tinta/ui/widgets/paper.dart';
+import 'package:tinta/ui/widgets/size_slider.dart';
 
 import 'fixtures.dart';
 
@@ -177,6 +178,44 @@ void main() {
     await tester.tap(find.text('300% · Fit'));
     await tester.pumpAndSettle();
     expect(find.textContaining('% · Fit'), findsNothing);
+  });
+
+  testWidgets('rail and dock slide away while drawing, then come back', (
+    tester,
+  ) async {
+    await pumpPhone(
+      tester,
+      TintaApp(library: LibraryStore.memory(), initialRoute: Routes.library),
+    );
+    await tester.tap(find.bySemanticsLabel('New canvas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create page'));
+    await tester.pumpAndSettle();
+
+    Offset railOffset() => tester
+        .widget<AnimatedSlide>(
+          find.ancestor(
+            of: find.byType(VerticalSizeSlider),
+            matching: find.byType(AnimatedSlide),
+          ),
+        )
+        .offset;
+    expect(railOffset(), Offset.zero);
+
+    final g = await tester.startGesture(
+      tester.getCenter(find.byType(PageCanvas)) - const Offset(60, 0),
+    );
+    for (var i = 0; i < 6; i++) {
+      await g.moveBy(const Offset(10, 4));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(railOffset().dx, greaterThan(1)); // slid off to the right
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(railOffset().dx, greaterThan(1)); // still away between strokes
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+    expect(railOffset(), Offset.zero);
   });
 
   testWidgets('every cover design renders', (tester) async {

@@ -56,8 +56,9 @@ class _NewPageSheetState extends State<NewPageSheet> {
         // Match the page area of the studio canvas on this device.
         final size = MediaQuery.sizeOf(context);
         final padding = MediaQuery.paddingOf(context);
-        final h = size.height - padding.vertical - 64 - 162;
-        return (h / (size.width - 40)).clamp(1.0, 2.4);
+        // Canvas: top bar (~60) + 8 above the page, 16 below; 12 side margins.
+        final h = size.height - padding.vertical - 60 - 8 - 16;
+        return (h / (size.width - 24)).clamp(1.0, 2.6);
       case PageFormat.custom:
         final w = double.tryParse(_customW.text) ?? 0;
         final h = double.tryParse(_customH.text) ?? 0;

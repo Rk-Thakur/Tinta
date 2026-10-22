@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -32,6 +34,23 @@ class _CanvasScreenState extends State<CanvasScreen> {
   late SketchPage _page;
   CanvasController? _controller;
   final _viewport = PageViewport();
+
+  /// Focus mode: rail and dock slide away while ink is going down, and
+  /// come back shortly after the pen lifts (not between quick strokes).
+  bool _chromeHidden = false;
+  Timer? _showChromeTimer;
+  static const _showChromeDelay = Duration(milliseconds: 700);
+
+  void _onControllerChanged() {
+    if (_c.isInking) {
+      _showChromeTimer?.cancel();
+      if (!_chromeHidden) setState(() => _chromeHidden = true);
+    } else if (_chromeHidden && !(_showChromeTimer?.isActive ?? false)) {
+      _showChromeTimer = Timer(_showChromeDelay, () {
+        if (mounted && !_c.isInking) setState(() => _chromeHidden = false);
+      });
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -74,10 +93,13 @@ class _CanvasScreenState extends State<CanvasScreen> {
         _store.updatePage(_page);
       },
     );
+    _controller!.addListener(_onControllerChanged);
   }
 
   @override
   void dispose() {
+    _showChromeTimer?.cancel();
+    _controller?.removeListener(_onControllerChanged);
     _controller?.dispose();
     _viewport.dispose();
     super.dispose();
@@ -109,8 +131,12 @@ class _CanvasScreenState extends State<CanvasScreen> {
           body: ListenableBuilder(
             listenable: _c,
             builder: (context, _) {
+              // The page runs under the dock (it slides away while drawing);
+              // the rail is laid out above the dock.
+              final pageBottom = 16 + bottomInset;
               final dockSpace = 92 + bottomInset;
               final railLeft = prefs.leftHanded;
+              final hidden = _chromeHidden;
               return Stack(
                 children: [
                   Column(
@@ -137,7 +163,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
                                   12,
                                   8,
                                   12,
-                                  dockSpace,
+                                  pageBottom,
                                 ),
                               ),
                             ),
@@ -147,26 +173,30 @@ class _CanvasScreenState extends State<CanvasScreen> {
                               right: railLeft ? null : 6,
                               top: 8,
                               bottom: dockSpace,
-                              child: Center(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    spacing: 10,
-                                    children: [
-                                      VerticalSizeSlider(
-                                        value: _c.size,
-                                        min: CanvasController.minSize,
-                                        max: CanvasController.maxSize,
-                                        enabled: _c.tool != CanvasTool.lasso,
-                                        onChanged: (v) => _c.size = v,
-                                      ),
-                                      _InkRow(
-                                        inks: _inks(StudioScope.of(context)),
-                                        controller: _c,
-                                        vertical: true,
-                                      ),
-                                    ],
+                              child: _SlideAway(
+                                hidden: hidden,
+                                offset: Offset(railLeft ? -1.4 : 1.4, 0),
+                                child: Center(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      spacing: 10,
+                                      children: [
+                                        VerticalSizeSlider(
+                                          value: _c.size,
+                                          min: CanvasController.minSize,
+                                          max: CanvasController.maxSize,
+                                          enabled: _c.tool != CanvasTool.lasso,
+                                          onChanged: (v) => _c.size = v,
+                                        ),
+                                        _InkRow(
+                                          inks: _inks(StudioScope.of(context)),
+                                          controller: _c,
+                                          vertical: true,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -186,16 +216,20 @@ class _CanvasScreenState extends State<CanvasScreen> {
                     left: 16,
                     right: 16,
                     bottom: 20 + bottomInset,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 10,
-                      children: [
-                        if (_c.picking)
-                          _PickBar(controller: _c)
-                        else if (_c.selection.isNotEmpty)
-                          _SelectionBar(controller: _c),
-                        _Dock(controller: _c),
-                      ],
+                    child: _SlideAway(
+                      hidden: hidden,
+                      offset: const Offset(0, 1.6),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 10,
+                        children: [
+                          if (_c.picking)
+                            _PickBar(controller: _c)
+                          else if (_c.selection.isNotEmpty)
+                            _SelectionBar(controller: _c),
+                          _Dock(controller: _c),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -554,6 +588,33 @@ class _ZoomChip extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Slides [child] off by [offset] (in its own sizes) and ignores touches
+/// while [hidden].
+class _SlideAway extends StatelessWidget {
+  const _SlideAway({
+    required this.hidden,
+    required this.offset,
+    required this.child,
+  });
+
+  final bool hidden;
+  final Offset offset;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      ignoring: hidden,
+      child: AnimatedSlide(
+        offset: hidden ? offset : Offset.zero,
+        duration: Duration(milliseconds: hidden ? 160 : 240),
+        curve: hidden ? Curves.easeIn : Curves.easeOutCubic,
+        child: ExcludeSemantics(excluding: hidden, child: child),
+      ),
     );
   }
 }

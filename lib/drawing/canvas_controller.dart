@@ -138,6 +138,10 @@ class CanvasController extends ChangeNotifier {
   bool get picking => _picking;
   bool get canUndo => _undo.isNotEmpty;
   bool get canRedo => _redo.isNotEmpty;
+
+  /// A pen or finger is laying down ink right now (not lasso, not pinch).
+  bool get isInking => _livePoints != null;
+
   bool get isDrawing =>
       _livePoints != null || _lassoPath != null || _dragStart != null;
 
