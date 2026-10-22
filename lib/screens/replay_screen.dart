@@ -327,6 +327,16 @@ class _FramePainter extends CustomPainter {
       live: frame.live,
       liveLayer: frame.liveLayer,
     );
+    if (page.paper.isDark) {
+      // Same edge as the canvas, so night pages stand out from the studio.
+      canvas.drawRect(
+        (Offset.zero & page.size).deflate(0.5),
+        Paint()
+          ..color = TintaColors.dockRaised
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = size.width > 0 ? page.size.width / size.width * 2 : 1,
+      );
+    }
   }
 
   @override

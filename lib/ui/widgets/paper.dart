@@ -207,15 +207,21 @@ class SketchbookCover extends StatelessWidget {
         ),
       ],
       CoverMotif.wordmark => [
+        // Between the spine and the band; long words shrink to fit.
         Positioned(
           left: 18,
+          right: 34,
           top: 24,
-          child: Text(
-            cover.wordmark ?? _wordmarkFrom(title),
-            style: TintaType.display(
-              22,
-              color: cover.motifColor,
-            ).copyWith(height: 1, letterSpacing: -0.5),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.topLeft,
+            child: Text(
+              cover.wordmark ?? _wordmarkFrom(title),
+              style: TintaType.display(
+                22,
+                color: cover.motifColor,
+              ).copyWith(height: 1, letterSpacing: -0.5),
+            ),
           ),
         ),
       ],

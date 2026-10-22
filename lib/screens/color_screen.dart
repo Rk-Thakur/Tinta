@@ -221,10 +221,12 @@ class _ColorScreenState extends State<ColorScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'Palettes',
-                    style: TintaType.display(20, weight: FontWeight.w600),
-                  ),
+                  child: c == null
+                      ? const SizedBox.shrink() // the page title already says "Palettes"
+                      : Text(
+                          'Palettes',
+                          style: TintaType.display(20, weight: FontWeight.w600),
+                        ),
                 ),
                 TextButton(
                   onPressed: _fromPhoto,

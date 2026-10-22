@@ -270,6 +270,16 @@ class _PaperLayer extends CustomPainter {
     canvas.scale(scale);
     paintPaper(canvas, page, paper);
     canvas.restore();
+    // Dark paper would vanish into the dark studio; give it an edge.
+    if (paper.isDark) {
+      canvas.drawRRect(
+        rrect.deflate(0.5),
+        Paint()
+          ..color = TintaColors.dockRaised
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1,
+      );
+    }
   }
 
   @override

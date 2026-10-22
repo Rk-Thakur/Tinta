@@ -54,7 +54,7 @@ void main() {
       find.text('3 days'),
       findsOneWidget,
     ); // today, yesterday, the day before
-    expect(find.text('0m'), findsOneWidget); // a few strokes, under a minute
+    expect(find.text('<1m'), findsOneWidget); // a few strokes, under a minute
   });
 
   testWidgets('new page sheet → canvas → draw → undo', (tester) async {

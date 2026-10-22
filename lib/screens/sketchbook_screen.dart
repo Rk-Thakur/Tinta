@@ -8,6 +8,7 @@ import '../theme/tokens.dart';
 import '../theme/typography.dart';
 import '../ui/art.dart';
 import '../ui/widgets/paper.dart';
+import '../ui/format.dart';
 import '../ui/widgets/widgets.dart';
 import 'library_screen.dart';
 import 'page_actions.dart';
@@ -171,11 +172,11 @@ class _Header extends StatelessWidget {
                     children: [
                       _Stat(
                         value: '${book.pageCount}',
-                        label: 'pages',
+                        label: book.pageCount == 1 ? 'page' : 'pages',
                         background: statBg,
                       ),
                       _Stat(
-                        value: _duration(book.timeDrawn),
+                        value: formatDrawn(book.timeDrawn),
                         label: 'drawn',
                         background: statBg,
                       ),
@@ -194,13 +195,6 @@ class _Header extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static String _duration(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes % 60;
-    if (h == 0) return '${m}m';
-    return m == 0 ? '${h}h' : '${h}h ${m}m';
   }
 
   void _showOptions(BuildContext context) =>

@@ -7,6 +7,7 @@ import '../theme/tokens.dart';
 import '../theme/typography.dart';
 import '../ui/widgets/main_nav.dart';
 import '../ui/widgets/paper.dart';
+import '../ui/format.dart';
 import '../ui/widgets/dialogs.dart';
 import '../ui/widgets/widgets.dart';
 import 'page_actions.dart';
@@ -322,7 +323,7 @@ class BookTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: '${book.title}, ${book.pageCount} pages',
+      label: '${book.title}, ${plural(book.pageCount, 'page')}',
       excludeSemantics: true,
       child: GestureDetector(
         onLongPress: () => showBookActions(context, book),
@@ -351,7 +352,7 @@ class BookTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                '${book.pageCount} pages',
+                plural(book.pageCount, 'page'),
                 style: TintaType.body(12, color: TintaColors.ink2, height: 1.3),
               ),
             ],
@@ -401,7 +402,7 @@ Future<void> showBookActions(
   return showActionSheet(
     context,
     title: book.title,
-    subtitle: '${book.pageCount} ${book.pageCount == 1 ? 'page' : 'pages'}',
+    subtitle: plural(book.pageCount, 'page'),
     actions: [
       SheetAction(
         'Edit name & cover',
@@ -414,6 +415,8 @@ Future<void> showBookActions(
           title: 'Delete “${book.title}”?',
           message: book.pageCount == 0
               ? 'This empty sketchbook is removed.'
+              : book.pageCount == 1
+              ? 'Its page and replay are removed from this device. This can’t be undone.'
               : 'All ${book.pageCount} pages and their replays are removed from this device. This can’t be undone.',
           confirmLabel: 'Delete',
         );

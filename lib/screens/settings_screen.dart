@@ -12,6 +12,7 @@ import '../services/backup.dart';
 import '../services/reminders.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
+import '../ui/format.dart';
 import '../ui/widgets/dialogs.dart';
 import '../ui/widgets/widgets.dart';
 
@@ -98,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         setState(() {
           _message =
-              'Restored ${r.sketchbooks} sketchbooks and ${r.pages} pages.';
+              'Restored ${plural(r.sketchbooks, 'sketchbook')} and ${plural(r.pages, 'page')}.';
           _messageOk = true;
         });
       }
@@ -300,6 +301,8 @@ class _VaultCard extends StatelessWidget {
               height: 12,
               child: Row(
                 spacing: 2,
+                // Stretch: childless ColoredBoxes otherwise collapse to 0 height.
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   for (final (color, _, bytes) in parts)
                     if (bytes > 0)
