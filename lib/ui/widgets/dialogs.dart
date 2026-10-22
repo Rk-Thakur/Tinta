@@ -200,33 +200,42 @@ class TintaDialog extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (icon != null) ...[
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: iconColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(TintaRadii.sm),
+                    // Icon badge and title on one line, centred on each other.
+                    Row(
+                      spacing: 12,
+                      children: [
+                        if (icon != null)
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: iconColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(
+                                TintaRadii.sm,
+                              ),
+                            ),
+                            child: Center(
+                              child: TintaIcon(
+                                icon!,
+                                size: 20,
+                                strokeWidth: 2.4,
+                                color: iconColor,
+                              ),
+                            ),
                           ),
-                          child: Center(
-                            child: TintaIcon(
-                              icon!,
-                              size: 20,
-                              strokeWidth: 2.4,
-                              color: iconColor,
+                        Expanded(
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              title,
+                              style: TintaType.display(24)
+                                  .copyWith(height: 1.15),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-                    Semantics(
-                      header: true,
-                      child: Text(title, style: TintaType.display(24)),
+                      ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 14),
                     body,
                     const SizedBox(height: 20),
                     Row(
