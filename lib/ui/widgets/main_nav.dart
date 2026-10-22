@@ -12,7 +12,8 @@ class MainNav extends StatelessWidget {
 
   final MainTab current;
 
-  static const height = 68.0;
+  /// Height above the home-indicator inset.
+  static const height = 72.0;
 
   @override
   Widget build(BuildContext context) {
@@ -33,17 +34,25 @@ class MainNav extends StatelessWidget {
       container: true,
       explicitChildNodes: true,
       label: 'Main',
+      // Docked to the bottom edge: rounded on top, home-indicator space inside.
       child: Container(
-        height: height,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
+        height: height + MediaQuery.paddingOf(context).bottom,
+        padding: EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          MediaQuery.paddingOf(context).bottom,
+        ),
+        decoration: const BoxDecoration(
           color: TintaColors.studioInk,
-          borderRadius: BorderRadius.circular(TintaRadii.dock),
-          boxShadow: const [
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(TintaRadii.dock),
+          ),
+          boxShadow: [
             BoxShadow(
-              color: Color(0x33000000),
-              blurRadius: 24,
-              offset: Offset(0, 8),
+              color: Color(0x26000000),
+              blurRadius: 20,
+              offset: Offset(0, -4),
             ),
           ],
         ),

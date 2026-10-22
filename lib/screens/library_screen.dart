@@ -41,7 +41,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: ListView(
               padding: EdgeInsets.only(
                 top: 8,
-                bottom: MainNav.height + 24 + bottomInset + 16,
+                bottom: MainNav.height + bottomInset + 20,
               ),
               children: [
                 Padding(
@@ -182,11 +182,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ],
             ),
           ),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 24 + bottomInset,
-            child: const MainNav(current: MainTab.library),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: MainNav(current: MainTab.library),
           ),
         ],
       ),
