@@ -268,6 +268,17 @@ void main() {
     expect(find.bySemanticsLabel('Ink #2F4BFF'), findsNothing);
   });
 
+  testWidgets('daily prompt opens a new page without errors', (tester) async {
+    final library = LibraryStore.memory();
+    await pumpPhone(tester, TintaApp(library: library, initialRoute: Routes.library));
+    final prompt = library.dailyPrompt.text;
+    await tester.tap(find.bySemanticsLabel('Start prompt'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text(prompt), findsOneWidget); // the page is titled with the prompt
+    expect(library.loosePages.single.title, prompt);
+  });
+
   testWidgets('every cover design renders', (tester) async {
     await pumpPhone(
       tester,

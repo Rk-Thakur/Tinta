@@ -276,8 +276,19 @@ class _PromptCard extends StatelessWidget {
             iconSize: 22,
             background: TintaColors.studioInk,
             foreground: TintaColors.sun,
-            onPressed: () => Navigator.of(context)
-                .pushNamed(Routes.canvas, arguments: CanvasArgs.prompt(prompt)),
+            onPressed: () {
+              // Make the page here, then open it on the canvas.
+              final page = LibraryScope.of(context).addPage(
+                SketchPage(
+                  id: '',
+                  number: 0,
+                  title: prompt.text,
+                  paper: PaperType.smooth,
+                ),
+              );
+              Navigator.of(context)
+                  .pushNamed(Routes.canvas, arguments: CanvasArgs.page(page));
+            },
           ),
         ],
       ),

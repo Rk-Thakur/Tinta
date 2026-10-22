@@ -58,19 +58,10 @@ class _CanvasScreenState extends State<CanvasScreen> {
     super.didChangeDependencies();
     if (_controller != null) return;
     _store = LibraryScope.of(context);
+    // The page always exists before the canvas opens (creating one here,
+    // mid-build, would rebuild the library during build).
     final args = widget.args;
-    if (args.prompt != null) {
-      _page = _store.addPage(
-        SketchPage(
-          id: '',
-          number: 0,
-          title: args.prompt!.text,
-          paper: PaperType.smooth,
-        ),
-      );
-    } else {
-      _page = _store.page(args.page!.id) ?? args.page!;
-    }
+    _page = _store.page(args.page.id) ?? args.page;
     _controller = CanvasController(
       layers: _page.layers,
       pageSize: _page.size,

@@ -22,13 +22,12 @@ import '../screens/sketchbook_sheet.dart';
 import '../screens/sketchbook_screen.dart';
 
 /// What the canvas opens on: an existing page, or a fresh one for a prompt.
+/// Which page the canvas opens. The page must already be in the library.
 class CanvasArgs {
-  const CanvasArgs.page(SketchPage this.page, {this.bookId}) : prompt = null;
-  const CanvasArgs.prompt(DailyPrompt this.prompt) : page = null, bookId = null;
+  const CanvasArgs.page(this.page, {this.bookId});
 
-  final SketchPage? page;
+  final SketchPage page;
   final String? bookId;
-  final DailyPrompt? prompt;
 }
 
 /// One route per artboard in the design kit.
@@ -112,10 +111,8 @@ abstract final class Routes {
             const PaletteEditorArgs(),
       ),
       color => ColorScreen(controller: settings.arguments as CanvasController?),
-      canvas => CanvasScreen(
-        args:
-            settings.arguments as CanvasArgs? ??
-            const CanvasArgs.prompt(DailyPrompt(text: 'Free draw', minutes: 0)),
+      canvas when settings.arguments is CanvasArgs => CanvasScreen(
+        args: settings.arguments! as CanvasArgs,
       ),
       kit => const KitScreen(),
       onboarding => const OnboardingScreen(),
