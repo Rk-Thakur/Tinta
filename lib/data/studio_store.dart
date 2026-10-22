@@ -83,6 +83,26 @@ class StudioStore extends ChangeNotifier {
     return p;
   }
 
+  /// Most colors a palette can hold.
+  static const maxColors = 8;
+
+  /// Renames / recolors a user palette (built-ins are fixed).
+  void updatePalette(
+    String id, {
+    required String name,
+    required List<Color> colors,
+  }) {
+    final i = _palettes.indexWhere((p) => p.id == id);
+    if (i < 0 || !isUserPalette(_palettes[i])) return;
+    _palettes[i] = Palette(
+      id: id,
+      name: name,
+      colors: List.unmodifiable(colors),
+    );
+    notifyListeners();
+    _save();
+  }
+
   void removePalette(Palette p) {
     if (builtInPalettes.any((b) => b.id == p.id)) return;
     _palettes.removeWhere((x) => x.id == p.id);

@@ -14,6 +14,7 @@ import '../screens/kit_screen.dart';
 import '../screens/library_screen.dart';
 import '../screens/new_page_sheet.dart';
 import '../screens/onboarding_screen.dart';
+import '../screens/palette_editor_screen.dart';
 import '../screens/placeholder_screen.dart';
 import '../screens/replay_screen.dart';
 import '../screens/settings_screen.dart';
@@ -37,6 +38,7 @@ abstract final class Routes {
   static const library = '/';
   static const sketchbooks = '/sketchbooks';
   static const book = '/book';
+  static const palette = '/palette';
   static const sketchbook = '/sketchbook';
   static const newCanvas = '/new';
   static const canvas = '/canvas';
@@ -104,6 +106,11 @@ abstract final class Routes {
       ),
       replay => _replay(settings.arguments),
       Routes.settings => const SettingsScreen(),
+      palette => PaletteEditorScreen(
+        args:
+            settings.arguments as PaletteEditorArgs? ??
+            const PaletteEditorArgs(),
+      ),
       color => ColorScreen(controller: settings.arguments as CanvasController?),
       canvas => CanvasScreen(
         args:

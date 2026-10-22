@@ -15,6 +15,7 @@ import 'export_sheet.dart';
 import 'layers_screen.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
+import '../ui/widgets/color_picker.dart';
 import '../ui/widgets/dialogs.dart';
 import '../ui/widgets/size_slider.dart';
 import '../ui/widgets/widgets.dart';

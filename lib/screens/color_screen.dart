@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../app/routes.dart';
+
 import '../data/studio_store.dart';
 import '../drawing/canvas_controller.dart';
 import '../services/photo_palette.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
+import '../ui/widgets/color_picker.dart';
 import '../ui/widgets/widgets.dart';
+import 'palette_editor_screen.dart';
 
 /// Returned when the user asks to sample a color from the page.
 const colorScreenEyedropper = 'eyedropper';
-
-String hexOf(Color c) =>
-    '#${c.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
 
 /// What two inks look like printed on top of each other.
 Color overprint(Color a, Color b) =>
@@ -209,33 +210,60 @@ class _ColorScreenState extends State<ColorScreen> {
                 ),
               ],
               const SizedBox(height: 16),
-              _SaturationValueBox(
+              SaturationValueBox(
                 hsv: _hsv,
                 onChanged: _preview,
                 onChangeEnd: _apply,
               ),
               const SizedBox(height: 16),
-              _HueBar(hsv: _hsv, onChanged: _preview, onChangeEnd: _apply),
+              HueBar(hsv: _hsv, onChanged: _preview, onChangeEnd: _apply),
             ],
             const SizedBox(height: 22),
-            Row(
+            // Reflows onto two lines rather than overflowing (narrow phones,
+            // large text).
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: 4,
               children: [
-                Expanded(
-                  child: c == null
-                      ? const SizedBox.shrink() // the page title already says "Palettes"
-                      : Text(
-                          'Palettes',
-                          style: TintaType.display(20, weight: FontWeight.w600),
-                        ),
-                ),
-                TextButton(
-                  onPressed: _fromPhoto,
-                  style: TextButton.styleFrom(
-                    foregroundColor: TintaColors.risoBlue,
-                    minimumSize: const Size(44, 44),
-                    textStyle: TintaType.body(14, weight: FontWeight.w500),
+                if (c !=
+                    null) // from the library, the page title already says "Palettes"
+                  Text(
+                    'Palettes',
+                    style: TintaType.display(20, weight: FontWeight.w600),
                   ),
-                  child: const Text('From photo'),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => Navigator.of(context).pushNamed(
+                        Routes.palette,
+                        arguments: PaletteEditorArgs(startWith: c?.color),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: TintaColors.risoBlue,
+                        minimumSize: const Size(44, 44),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        textStyle: TintaType.body(14, weight: FontWeight.w500),
+                      ),
+                      icon: const TintaIcon(
+                        TintaIcons.plus,
+                        size: 16,
+                        strokeWidth: 2.4,
+                        color: TintaColors.risoBlue,
+                      ),
+                      label: const Text('New palette'),
+                    ),
+                    TextButton(
+                      onPressed: _fromPhoto,
+                      style: TextButton.styleFrom(
+                        foregroundColor: TintaColors.risoBlue,
+                        minimumSize: const Size(44, 44),
+                        textStyle: TintaType.body(14, weight: FontWeight.w500),
+                      ),
+                      child: const Text('From photo'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -251,8 +279,11 @@ class _ColorScreenState extends State<ColorScreen> {
                   onActivate: () => studio.activePalette = p,
                   onPick: c == null ? null : _pick,
                   selected: c?.color,
-                  onRemove: studio.isUserPalette(p)
-                      ? () => studio.removePalette(p)
+                  onEdit: studio.isUserPalette(p)
+                      ? () => Navigator.of(context).pushNamed(
+                          Routes.palette,
+                          arguments: PaletteEditorArgs(paletteId: p.id),
+                        )
                       : null,
                 ),
               ),
@@ -263,164 +294,6 @@ class _ColorScreenState extends State<ColorScreen> {
   }
 }
 
-class _SaturationValueBox extends StatelessWidget {
-  const _SaturationValueBox({
-    required this.hsv,
-    required this.onChanged,
-    required this.onChangeEnd,
-  });
-
-  final HSVColor hsv;
-  final ValueChanged<HSVColor> onChanged;
-  final VoidCallback onChangeEnd;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const height = 210.0;
-        final width = constraints.maxWidth;
-        void update(Offset p) => onChanged(
-          hsv
-              .withSaturation((p.dx / width).clamp(0.0, 1.0))
-              .withValue(1 - (p.dy / height).clamp(0.0, 1.0)),
-        );
-        final hue = HSVColor.fromAHSV(1, hsv.hue, 1, 1).toColor();
-        return Semantics(
-          label: 'Saturation and brightness',
-          value:
-              '${(hsv.saturation * 100).round()}% saturation, ${(hsv.value * 100).round()}% brightness',
-          child: GestureDetector(
-            onPanStart: (d) => update(d.localPosition),
-            onPanUpdate: (d) => update(d.localPosition),
-            onPanEnd: (_) => onChangeEnd(),
-            onTapUp: (d) {
-              update(d.localPosition);
-              onChangeEnd();
-            },
-            child: SizedBox(
-              height: height,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(TintaRadii.lg),
-                        gradient: LinearGradient(colors: [Colors.white, hue]),
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(TintaRadii.lg),
-                        gradient: const LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [Colors.black, Color(0x00000000)],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: hsv.saturation * width - 13,
-                    top: (1 - hsv.value) * height - 13,
-                    child: _Thumb(color: hsv.toColor(), size: 26),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _HueBar extends StatelessWidget {
-  const _HueBar({
-    required this.hsv,
-    required this.onChanged,
-    required this.onChangeEnd,
-  });
-
-  final HSVColor hsv;
-  final ValueChanged<HSVColor> onChanged;
-  final VoidCallback onChangeEnd;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        void update(Offset p) =>
-            onChanged(hsv.withHue((p.dx / width).clamp(0.0, 1.0) * 360));
-        return Semantics(
-          label: 'Hue',
-          value: '${hsv.hue.round()} degrees',
-          child: GestureDetector(
-            onHorizontalDragStart: (d) => update(d.localPosition),
-            onHorizontalDragUpdate: (d) => update(d.localPosition),
-            onHorizontalDragEnd: (_) => onChangeEnd(),
-            onTapUp: (d) {
-              update(d.localPosition);
-              onChangeEnd();
-            },
-            child: SizedBox(
-              height: 44,
-              child: Stack(
-                alignment: Alignment.centerLeft,
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    height: 22,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(11),
-                      gradient: LinearGradient(
-                        colors: [
-                          for (var h = 0; h <= 360; h += 60)
-                            HSVColor.fromAHSV(1, h.toDouble(), 1, 1).toColor(),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: hsv.hue / 360 * width - 14,
-                    child: _Thumb(
-                      color: HSVColor.fromAHSV(1, hsv.hue, 1, 1).toColor(),
-                      size: 28,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _Thumb extends StatelessWidget {
-  const _Thumb({required this.color, required this.size});
-
-  final Color color;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(
-      color: color,
-      shape: BoxShape.circle,
-      border: Border.all(color: Colors.white, width: 3),
-      boxShadow: const [BoxShadow(color: Color(0x4D000000), spreadRadius: 1)],
-    ),
-  );
-}
-
 class _PaletteCard extends StatelessWidget {
   const _PaletteCard({
     required this.palette,
@@ -428,10 +301,11 @@ class _PaletteCard extends StatelessWidget {
     required this.onActivate,
     required this.onPick,
     required this.selected,
-    this.onRemove,
+    this.onEdit,
   });
 
-  final VoidCallback? onRemove;
+  /// Your own palettes can be edited (and deleted from the editor).
+  final VoidCallback? onEdit;
 
   final Palette palette;
   final bool active;
@@ -455,54 +329,70 @@ class _PaletteCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 8,
         children: [
-          Semantics(
-            button: true,
-            selected: active,
-            label:
-                '${palette.name} palette${active ? ', active' : ''}. Use on canvas.',
-            excludeSemantics: true,
-            child: InkWell(
-              onTap: onActivate,
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                height: 32,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        palette.name,
-                        style: TintaType.body(14, weight: FontWeight.w700),
-                      ),
-                    ),
-                    if (onRemove != null)
-                      Semantics(
-                        button: true,
-                        label: 'Remove ${palette.name}',
-                        excludeSemantics: true,
-                        child: InkResponse(
-                          onTap: onRemove,
-                          radius: 20,
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: TintaIcon(
-                              TintaIcons.close,
-                              size: 14,
-                              color: TintaColors.ink2,
+          // Name + USE/ACTIVE is one control; edit is its own button, so
+          // screen readers can reach both.
+          Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  button: true,
+                  selected: active,
+                  label:
+                      '${palette.name} palette${active ? ', active' : ''}. Use on canvas.',
+                  excludeSemantics: true,
+                  child: InkWell(
+                    onTap: onActivate,
+                    borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      height: 32,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              palette.name,
+                              style: TintaType.body(
+                                14,
+                                weight: FontWeight.w700,
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    Text(
-                      active ? 'ACTIVE' : 'USE',
-                      style: TintaType.mono(
-                        11,
-                        color: active ? TintaColors.ink2 : TintaColors.risoBlue,
+                          Text(
+                            active ? 'ACTIVE' : 'USE',
+                            style: TintaType.mono(
+                              11,
+                              color: active
+                                  ? TintaColors.ink2
+                                  : TintaColors.risoBlue,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              if (onEdit != null)
+                Semantics(
+                  button: true,
+                  label: 'Edit ${palette.name}',
+                  excludeSemantics: true,
+                  child: InkResponse(
+                    onTap: onEdit,
+                    radius: 22,
+                    child: const SizedBox(
+                      width: 40,
+                      height: 32,
+                      child: Center(
+                        child: TintaIcon(
+                          TintaIcons.pencil,
+                          size: 16,
+                          color: TintaColors.ink2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           Row(
             spacing: 6,
