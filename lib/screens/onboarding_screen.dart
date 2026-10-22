@@ -18,7 +18,7 @@ class _Slide {
     required this.title,
     required this.body,
     required this.art,
-    this.keywords = const ['No sign‑up', 'Works offline', 'Private by default'],
+    required this.keywords,
   });
   final String badge;
 
@@ -36,7 +36,7 @@ const _slides = [
     badge: 'Airplane mode: fine',
     title: 'Draw anywhere.\nEven at 30,000 ft.',
     body: 'Every stroke lives on your phone. No account, no cloud, nothing to load.',
-    keywords: ['Two‑ink riso', 'Every stroke replays', 'Real paper grain'],
+    keywords: ['Riso inks', 'Replays', 'Paper grain'],
     art: Artwork(Size(342, 340), [
       ArtCircle(140, 150, 96, fill: TintaColors.risoBlue, opacity: 0.9),
       ArtCircle(
@@ -64,6 +64,7 @@ const _slides = [
   ),
   _Slide(
     badge: 'Six papers',
+    keywords: ['6 papers', 'Textures', 'Print‑ready'],
     badgeIcon: TintaIcons.layers,
     title: 'Paper,\nnot pixels.',
     body: 'Sketchbooks look like real books. Pages have tooth, tone and grain.',
@@ -105,6 +106,7 @@ const _slides = [
   ),
   _Slide(
     badge: 'One floating dock',
+    keywords: ['Focus mode', 'Pinch zoom', 'Pencil'],
     badgeIcon: TintaIcons.sliders,
     title: 'Studio mode.\nThumb first.',
     body:
@@ -314,10 +316,14 @@ class _SlideView extends StatelessWidget {
             style: TintaType.body(16, color: TintaColors.ink2, height: 1.5),
           ),
           const SizedBox(height: 24),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [for (final k in slide.keywords) _Promise(k)],
+          // One line, always: shrinks rather than wrapping on narrow phones.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              spacing: 8,
+              children: [for (final k in slide.keywords) _Promise(k)],
+            ),
           ),
         ],
       ),
