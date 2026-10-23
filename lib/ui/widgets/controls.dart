@@ -28,7 +28,8 @@ class SegmentedPills<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final light = tone == ControlTone.light;
     final track = light ? TintaColors.segmentTrack : TintaColors.dockRaised;
-    final selBg = light ? TintaColors.surface : TintaColors.newsprint;
+    final selBg = light ? TintaColors.surface : TintaInk.newsprint;
+    final selFg = light ? TintaColors.studioInk : TintaInk.studioInk;
     final idle = light ? TintaColors.ink2 : TintaColors.studioSubtle;
     return Container(
       padding: EdgeInsets.all(dense ? 3 : 4),
@@ -60,7 +61,7 @@ class SegmentedPills<T> extends StatelessWidget {
                     style: TintaType.body(
                       dense ? 12 : 14,
                       weight: o == value ? FontWeight.w700 : FontWeight.w400,
-                      color: o == value ? TintaColors.studioInk : idle,
+                      color: o == value ? selFg : idle,
                       height: 1,
                     ),
                   ),
@@ -79,12 +80,12 @@ class TintaSwitch extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
-    this.activeColor = TintaColors.risoBlue,
+    this.activeColor,
   });
 
   final bool value;
   final ValueChanged<bool> onChanged;
-  final Color activeColor;
+  final Color? activeColor;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +99,9 @@ class TintaSwitch extends StatelessWidget {
           height: 32,
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: value ? activeColor : TintaColors.line,
+            color: value
+                ? (activeColor ?? TintaColors.risoBlue)
+                : TintaColors.line,
             borderRadius: BorderRadius.circular(TintaRadii.pill),
           ),
           child: AnimatedAlign(
@@ -145,14 +148,14 @@ class TintaSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final light = tone == ControlTone.light;
     final fill =
-        fillColor ?? (light ? TintaColors.studioInk : TintaColors.newsprint);
+        fillColor ?? (light ? TintaColors.studioInk : TintaInk.newsprint);
     return SliderTheme(
       data: SliderThemeData(
         trackHeight: 6,
         activeTrackColor: fill,
         inactiveTrackColor: light ? TintaColors.line : TintaColors.dockRaised,
         thumbShape: _RingThumb(
-          fill: light ? Colors.white : fill,
+          fill: light ? TintaColors.surface : fill,
           ring: light ? TintaColors.studioInk : null,
         ),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 22),
@@ -239,7 +242,7 @@ class LabeledSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final fg = tone == ControlTone.light
         ? TintaColors.studioInk
-        : TintaColors.newsprint;
+        : TintaInk.newsprint;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

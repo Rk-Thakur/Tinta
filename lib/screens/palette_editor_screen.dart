@@ -53,7 +53,7 @@ class _PaletteEditorScreenState extends State<PaletteEditorScreen> {
       _name.text = _editing!.name;
       _colors.addAll(_editing!.colors);
     } else {
-      _colors.add(widget.args.startWith ?? TintaColors.risoBlue);
+      _colors.add(widget.args.startWith ?? TintaInk.risoBlue);
     }
     _select(0);
   }
@@ -208,7 +208,7 @@ class _PaletteEditorScreenState extends State<PaletteEditorScreen> {
                             width: 1.5,
                           ),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: TintaIcon(
                             TintaIcons.plus,
                             size: 22,
@@ -314,11 +314,11 @@ class _PaletteEditorScreenState extends State<PaletteEditorScreen> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(TintaRadii.md),
-          borderSide: const BorderSide(color: TintaColors.line),
+          borderSide: BorderSide(color: TintaColors.line),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(TintaRadii.md),
-          borderSide: const BorderSide(color: TintaColors.studioInk, width: 2),
+          borderSide: BorderSide(color: TintaColors.studioInk, width: 2),
         ),
       );
 }

@@ -57,11 +57,11 @@ class ToolDock<T> extends StatelessWidget {
                 iconSize: 22,
                 strokeWidth: 2,
                 background: t.id == selected
-                    ? TintaColors.newsprint
+                    ? TintaInk.newsprint
                     : Colors.transparent,
                 foreground: t.id == selected
-                    ? TintaColors.studioInk
-                    : TintaColors.newsprint,
+                    ? TintaInk.studioInk
+                    : TintaInk.newsprint,
                 onPressed: () => onSelect(t.id),
               ),
             ),
@@ -70,7 +70,7 @@ class ToolDock<T> extends StatelessWidget {
               width: 1,
               height: 28,
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              color: TintaColors.ink2,
+              color: TintaInk.ink2,
             ),
             ...trailing,
           ],

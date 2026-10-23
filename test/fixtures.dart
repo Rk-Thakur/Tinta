@@ -6,7 +6,7 @@ import 'package:tinta/drawing/stroke.dart';
 import 'package:tinta/theme/tokens.dart';
 
 /// A small hand-built library for tests (the app itself starts empty).
-Stroke fixtureStroke(int id, int t0, {Color color = TintaColors.studioInk}) =>
+Stroke fixtureStroke(int id, int t0, {Color color = TintaInk.studioInk}) =>
     Stroke(
       id: id,
       brush: BrushKind.pencil,
@@ -46,9 +46,9 @@ LibraryStore fixtureLibrary({DateTime? today}) {
       Sketchbook(
         id: 'b1',
         title: 'Morning studies',
-        cover: const CoverDesign(
-          color: TintaColors.risoBlue,
-          band: TintaColors.studioInk,
+        cover: CoverDesign(
+          color: TintaInk.risoBlue,
+          band: TintaInk.studioInk,
           motif: CoverMotif.dot,
         ),
         paper: PaperType.toned,
@@ -63,11 +63,11 @@ LibraryStore fixtureLibrary({DateTime? today}) {
           fixturePage('b1-p1', 1, title: 'Coffee mug', days: [daysAgo(2)]),
         ],
       ),
-      const Sketchbook(
+      Sketchbook(
         id: 'b2',
         title: 'Inktober',
         cover: CoverDesign(
-          color: TintaColors.studioInk,
+          color: TintaInk.studioInk,
           band: TintaColors.sun,
           motif: CoverMotif.wordmark,
         ),

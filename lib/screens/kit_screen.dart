@@ -22,7 +22,7 @@ class _KitScreenState extends State<KitScreen> {
   String _tool = 'pencil';
   String _chip = 'Favorites';
 
-  static const _swatches = [
+  static final _swatches = [
     ('Riso Blue', TintaColors.risoBlue, 'primary ink'),
     ('Fluoro Orange', TintaColors.fluoroOrange, 'accent, fills'),
     ('Studio Ink', TintaColors.studioInk, 'text, studio chrome'),
@@ -49,7 +49,7 @@ class _KitScreenState extends State<KitScreen> {
               runSpacing: 12,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                for (final (bg, style) in const [
+                for (final (bg, style) in [
                   (TintaColors.surface, LogoStyle.paper),
                   (TintaColors.studioInk, LogoStyle.studio),
                   (TintaColors.sun, LogoStyle.sun),
@@ -67,7 +67,7 @@ class _KitScreenState extends State<KitScreen> {
                     child: TintaLogoMark(size: 44, style: style),
                   ),
                 const TintaLogoMark(size: 40, style: LogoStyle.oneColor),
-                const TintaLogoMark(
+                TintaLogoMark(
                   size: 40,
                   style: LogoStyle.oneColor,
                   color: TintaColors.risoBlue,
@@ -105,7 +105,7 @@ class _KitScreenState extends State<KitScreen> {
             Row(
               spacing: 8,
               children: [
-                for (final c in const [
+                for (final c in [
                   TintaColors.sun,
                   TintaColors.ink2,
                   TintaColors.line,
@@ -246,7 +246,7 @@ class _KitScreenState extends State<KitScreen> {
                 ],
                 selected: _tool,
                 onSelect: (t) => setState(() => _tool = t),
-                trailing: const [
+                trailing: [
                   ColorDot(
                     color: TintaColors.risoBlue,
                     label: 'Current color',

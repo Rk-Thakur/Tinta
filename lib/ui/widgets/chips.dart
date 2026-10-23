@@ -10,7 +10,11 @@ class OnDeviceBadge extends StatelessWidget {
     super.key,
     this.text = 'On device',
     this.icon = TintaIcons.offline,
+    this.alwaysDark = false,
   });
+
+  /// Keep the dark pill in the dark theme too (e.g. over artwork).
+  final bool alwaysDark;
 
   final String text;
   final TintaIcons icon;
@@ -21,7 +25,7 @@ class OnDeviceBadge extends StatelessWidget {
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: TintaColors.studioInk,
+        color: alwaysDark ? TintaInk.studioInk : TintaColors.studioInk,
         borderRadius: BorderRadius.circular(TintaRadii.pill),
       ),
       child: Row(
@@ -34,7 +38,10 @@ class OnDeviceBadge extends StatelessWidget {
               text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TintaType.mono(12, color: TintaColors.newsprint),
+              style: TintaType.mono(
+                12,
+                color: alwaysDark ? TintaInk.newsprint : TintaColors.newsprint,
+              ),
             ),
           ),
         ],
@@ -69,16 +76,16 @@ class TintaChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final light = tone == ChipTone.light;
     final selBg =
-        selectedColor ?? (light ? TintaColors.risoBlue : TintaColors.newsprint);
-    final selFg = selBg.computeLuminance() > 0.5
-        ? TintaColors.studioInk
+        selectedColor ?? (light ? TintaColors.risoBlue : TintaInk.newsprint);
+    final selFg = selBg.computeLuminance() > 0.4
+        ? TintaInk.studioInk
         : Colors.white;
     final bg = selected
         ? selBg
         : (light ? TintaColors.surface : TintaColors.dockRaised);
     final fg = selected
         ? selFg
-        : (light ? TintaColors.studioInk : TintaColors.newsprint);
+        : (light ? TintaColors.studioInk : TintaInk.newsprint);
     return Semantics(
       button: onTap != null,
       selected: selected,
@@ -86,7 +93,7 @@ class TintaChip extends StatelessWidget {
         color: bg,
         shape: StadiumBorder(
           side: light && !selected
-              ? const BorderSide(color: TintaColors.line)
+              ? BorderSide(color: TintaColors.line)
               : BorderSide.none,
         ),
         clipBehavior: Clip.antiAlias,
@@ -118,10 +125,10 @@ class TintaChip extends StatelessWidget {
 
 /// Uppercase mono section label.
 class SectionLabel extends StatelessWidget {
-  const SectionLabel(this.text, {super.key, this.color = TintaColors.ink2});
+  const SectionLabel(this.text, {super.key, this.color});
 
   final String text;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) =>

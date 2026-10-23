@@ -71,6 +71,10 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  assets:
+    # Pencil-on-paper loop (tool/generate_sounds.dart).
+    - assets/sounds/pencil.wav
+
   # Bundled so the app never needs the network. Variable fonts; weights are
   # applied through the 'wght' axis in lib/theme/typography.dart.
   fonts:

@@ -5,6 +5,7 @@ import '../data/library_store.dart';
 import '../data/prefs.dart';
 import '../data/studio_store.dart';
 import '../theme/theme.dart';
+import '../theme/tokens.dart';
 import 'routes.dart';
 
 class TintaApp extends StatefulWidget {
@@ -35,6 +36,48 @@ class _TintaAppState extends State<TintaApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _applyLook();
+    _prefs.addListener(_onPrefs);
+  }
+
+  /// Theme + ink pair from prefs (and the system, for [ThemeChoice.system]).
+  /// Returns whether the palette changed.
+  bool _applyLook() {
+    final dark = switch (_prefs.theme) {
+      ThemeChoice.light => false,
+      ThemeChoice.dark => true,
+      ThemeChoice.system =>
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark,
+    };
+    if (dark == TintaColors.isDark && _prefs.inkPair == TintaColors.inkPair) {
+      return false;
+    }
+    TintaColors.apply(dark: dark, pair: _prefs.inkPair);
+    return true;
+  }
+
+  void _onPrefs() {
+    if (_applyLook()) _repaintEverything();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    if (_applyLook()) _repaintEverything();
+  }
+
+  /// Colors are read straight from [TintaColors], so after a switch every
+  /// screen (including the ones under the current one) rebuilds and repaints
+  /// in place, keeping its state.
+  void _repaintEverything() {
+    setState(() {});
+    void visit(Element e) {
+      e.markNeedsBuild();
+      if (e is RenderObjectElement) e.renderObject.markNeedsPaint();
+      e.visitChildren(visit);
+    }
+
+    if (mounted) (context as Element).visitChildren(visit);
   }
 
   @override
@@ -51,6 +94,7 @@ class _TintaAppState extends State<TintaApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _prefs.removeListener(_onPrefs);
     _store.dispose();
     _studio.dispose();
     _prefs.dispose();
@@ -68,16 +112,18 @@ class _TintaAppState extends State<TintaApp> with WidgetsBindingObserver {
           child: MaterialApp(
             title: 'Tinta',
             debugShowCheckedModeBanner: false,
-            theme: TintaTheme.light(),
+            theme: TintaTheme.app(),
             initialRoute: widget.initialRoute,
             // Only the requested route; by default '/x' would also stack '/' under it.
             onGenerateInitialRoutes: (name) => [
               Routes.generate(RouteSettings(name: name)),
             ],
             onGenerateRoute: Routes.generate,
-            // Light screens get a dark status bar; studio screens override this.
+            // Status bar follows the theme; studio screens override this.
             builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
-              value: SystemUiOverlayStyle.dark,
+              value: TintaColors.isDark
+                  ? SystemUiOverlayStyle.light
+                  : SystemUiOverlayStyle.dark,
               child: child!,
             ),
           ),

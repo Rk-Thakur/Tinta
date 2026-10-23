@@ -93,13 +93,13 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final bg = book.cover.color;
     final darkBg = bg.computeLuminance() < 0.25;
-    final fg = darkBg ? Colors.white : TintaColors.studioInk;
+    final fg = darkBg ? Colors.white : TintaInk.studioInk;
     final accent = book.cover.motif == CoverMotif.dot
         ? book.cover.motifColor
         : book.cover.band;
     final statBg = bg.computeLuminance() < 0.05
         ? TintaColors.dockRaised
-        : TintaColors.studioInk;
+        : TintaInk.studioInk;
     final top = MediaQuery.paddingOf(context).top;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -145,7 +145,7 @@ class _Header extends StatelessWidget {
                         icon: TintaIcons.more,
                         label: 'More options',
                         radius: 22,
-                        background: TintaColors.studioInk,
+                        background: TintaInk.studioInk,
                         foreground: Colors.white,
                         onPressed: () => _showOptions(context),
                       ),
@@ -254,7 +254,7 @@ class _ReplayButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
       onPressed: onPressed,
-      icon: const TintaIcon(
+      icon: TintaIcon(
         TintaIcons.play,
         size: 16,
         strokeWidth: 2.2,
@@ -265,7 +265,7 @@ class _ReplayButton extends StatelessWidget {
         foregroundColor: TintaColors.studioInk,
         minimumSize: const Size(0, 44),
         padding: const EdgeInsets.symmetric(horizontal: 14),
-        side: const BorderSide(color: TintaColors.studioInk, width: 1.5),
+        side: BorderSide(color: TintaColors.studioInk, width: 1.5),
         shape: const StadiumBorder(),
         textStyle: TintaType.body(13, weight: FontWeight.w700),
       ),
@@ -378,7 +378,7 @@ class _TurnPageTile extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const TintaIcon(
+                  TintaIcon(
                     TintaIcons.plus,
                     size: 24,
                     strokeWidth: 2.2,

@@ -301,7 +301,7 @@ class _ExportSheetState extends State<ExportSheet> {
                       ],
                     ),
                   ),
-                  const Divider(height: 1, color: Color(0xFFECEAE4)),
+                  Divider(height: 1, color: TintaColors.hairline),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -465,7 +465,7 @@ class _RisoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shown = inks.isEmpty
-        ? const [TintaColors.risoBlue, TintaColors.fluoroOrange]
+        ? [TintaInk.risoBlue, TintaInk.fluoroOrange]
         : inks.take(4).toList();
     return Semantics(
       button: true,
@@ -480,61 +480,65 @@ class _RisoTile extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(TintaRadii.md),
             side: selected
-                ? const BorderSide(color: TintaColors.risoBlue, width: 3)
+                ? BorderSide(color: TintaColors.risoBlue, width: 3)
                 : BorderSide.none,
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: enabled ? onTap : null,
-            child: SizedBox(
-              height: 76,
-              child: Row(
-                children: [
-                  const SizedBox(width: 14),
-                  SizedBox(
-                    width: 22 + 14.0 * (shown.length - 1),
-                    height: 22,
-                    child: Stack(
-                      children: [
-                        for (var i = 0; i < shown.length; i++)
-                          Positioned(
-                            left: 14.0 * i,
-                            child: Container(
-                              width: 22,
-                              height: 22,
-                              decoration: BoxDecoration(
-                                color: shown[i],
-                                shape: BoxShape.circle,
+            // Ink on sun in every theme.
+            child: DefaultTextStyle.merge(
+              style: const TextStyle(color: TintaInk.studioInk),
+              child: SizedBox(
+                height: 76,
+                child: Row(
+                  children: [
+                    const SizedBox(width: 14),
+                    SizedBox(
+                      width: 22 + 14.0 * (shown.length - 1),
+                      height: 22,
+                      child: Stack(
+                        children: [
+                          for (var i = 0; i < shown.length; i++)
+                            Positioned(
+                              left: 14.0 * i,
+                              child: Container(
+                                width: 22,
+                                height: 22,
+                                decoration: BoxDecoration(
+                                  color: shown[i],
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Riso separations',
-                          style: TintaType.body(
-                            14,
-                            weight: FontWeight.w700,
-                            height: 1.3,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Riso separations',
+                            style: TintaType.body(
+                              14,
+                              weight: FontWeight.w700,
+                              height: 1.3,
+                            ),
                           ),
-                        ),
-                        Text(
-                          inks.isEmpty
-                              ? 'Draw something first'
-                              : '${inks.length} ${inks.length == 1 ? 'sheet' : 'sheets'}, one per ink',
-                          style: TintaType.body(12, height: 1.3),
-                        ),
-                      ],
+                          Text(
+                            inks.isEmpty
+                                ? 'Draw something first'
+                                : '${inks.length} ${inks.length == 1 ? 'sheet' : 'sheets'}, one per ink',
+                            style: TintaType.body(12, height: 1.3),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

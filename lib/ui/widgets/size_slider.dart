@@ -103,7 +103,7 @@ class VerticalSizeSlider extends StatelessWidget {
                         width: 6,
                         height: trackLength * _t,
                         decoration: BoxDecoration(
-                          color: TintaColors.newsprint,
+                          color: TintaInk.newsprint,
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
@@ -113,7 +113,7 @@ class VerticalSizeSlider extends StatelessWidget {
                           width: 24,
                           height: 24,
                           decoration: const BoxDecoration(
-                            color: TintaColors.newsprint,
+                            color: TintaInk.newsprint,
                             shape: BoxShape.circle,
                           ),
                         ),

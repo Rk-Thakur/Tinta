@@ -46,7 +46,8 @@ class MainNav extends StatelessWidget {
         height: height,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: TintaColors.studioInk,
+          // Dark in both themes; lifted a little off the dark ground.
+          color: TintaColors.isDark ? TintaColors.dock : TintaInk.studioInk,
           borderRadius: BorderRadius.circular(TintaRadii.dock),
           boxShadow: const [
             BoxShadow(
@@ -71,14 +72,14 @@ class MainNav extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   onTap: () => go(Routes.newCanvas, null),
-                  child: const SizedBox.square(
+                  child: SizedBox.square(
                     dimension: 56,
                     child: Center(
                       child: TintaIcon(
                         TintaIcons.plus,
                         size: 26,
                         strokeWidth: 2.6,
-                        color: TintaColors.studioInk,
+                        color: TintaInk.studioInk,
                       ),
                     ),
                   ),

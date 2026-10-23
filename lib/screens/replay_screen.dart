@@ -111,7 +111,7 @@ class _ReplayScreenState extends State<ReplayScreen>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: TintaColors.studioInk,
+        backgroundColor: TintaInk.studioInk,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
@@ -130,10 +130,7 @@ class _ReplayScreenState extends State<ReplayScreen>
                     Expanded(
                       child: Text(
                         'Replay',
-                        style: TintaType.display(
-                          26,
-                          color: TintaColors.newsprint,
-                        ),
+                        style: TintaType.display(26, color: TintaInk.newsprint),
                       ),
                     ),
                     if (!empty)
@@ -175,7 +172,7 @@ class _ReplayScreenState extends State<ReplayScreen>
                                         horizontal: 10,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: TintaColors.studioInk,
+                                        color: TintaInk.studioInk,
                                         borderRadius: BorderRadius.circular(
                                           TintaRadii.pill,
                                         ),
@@ -186,7 +183,7 @@ class _ReplayScreenState extends State<ReplayScreen>
                                         '${widget.args.pages.length > 1 ? ' · p.${page.number}' : ''}',
                                         style: TintaType.mono(
                                           11,
-                                          color: TintaColors.newsprint,
+                                          color: TintaInk.newsprint,
                                         ),
                                       ),
                                     ),
@@ -239,7 +236,7 @@ class _ReplayScreenState extends State<ReplayScreen>
                         radius: 24,
                         iconSize: 26,
                         background: TintaColors.sun,
-                        foreground: TintaColors.studioInk,
+                        foreground: TintaInk.studioInk,
                         onPressed: _playing ? _pause : _play,
                       ),
                     ],
@@ -258,13 +255,13 @@ class _ReplayScreenState extends State<ReplayScreen>
                               TintaIcons.branch,
                               size: 18,
                               strokeWidth: 2.2,
-                              color: TintaColors.newsprint,
+                              color: TintaInk.newsprint,
                             ),
                             label: const Text('Branch from here'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: TintaColors.newsprint,
+                              foregroundColor: TintaInk.newsprint,
                               side: const BorderSide(
-                                color: TintaColors.newsprint,
+                                color: TintaInk.newsprint,
                                 width: 1.5,
                               ),
                               shape: const StadiumBorder(),
@@ -423,7 +420,7 @@ class _EmptyReplay extends StatelessWidget {
             style: TintaType.display(
               22,
               weight: FontWeight.w600,
-              color: TintaColors.newsprint,
+              color: TintaInk.newsprint,
             ),
           ),
           Text(
@@ -502,7 +499,7 @@ class _ReplayRow extends StatelessWidget {
       color: TintaColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TintaRadii.md),
-        side: const BorderSide(color: TintaColors.line),
+        side: BorderSide(color: TintaColors.line),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -540,7 +537,7 @@ class _ReplayRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const TintaIcon(
+              TintaIcon(
                 TintaIcons.play,
                 size: 20,
                 color: TintaColors.studioInk,

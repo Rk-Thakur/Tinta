@@ -8,6 +8,8 @@ import UIKit
   private var deviceChannel: FlutterMethodChannel?
   private var videoChannel: FlutterMethodChannel?
   private var encoder: VideoEncoder?
+  private var soundChannel: FlutterMethodChannel?
+  private var pencil: AVAudioPlayer?
   private let videoQueue = DispatchQueue(label: "tinta.video")
 
   override func application(
@@ -38,6 +40,38 @@ import UIKit
     let video = FlutterMethodChannel(name: "tinta/video", binaryMessenger: messenger)
     video.setMethodCallHandler { [weak self] call, result in self?.handleVideo(call, result) }
     videoChannel = video
+
+    // Pencil sound: one looping player; Dart sets the volume from stroke speed.
+    let sound = FlutterMethodChannel(name: "tinta/sound", binaryMessenger: messenger)
+    sound.setMethodCallHandler { [weak self] call, result in
+      guard let self else { return result(nil) }
+      let args = call.arguments as? [String: Any] ?? [:]
+      switch call.method {
+      case "start":
+        if self.pencil == nil, let asset = args["asset"] as? String,
+          let path = Bundle.main.path(forResource: registrar.lookupKey(forAsset: asset), ofType: nil)
+        {
+          // Ambient: mixes with music and follows the silent switch.
+          try? AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
+          self.pencil = try? AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
+          self.pencil?.numberOfLoops = -1
+          self.pencil?.prepareToPlay()
+        }
+        self.pencil?.volume = 0
+        self.pencil?.currentTime = Double.random(in: 0..<(self.pencil?.duration ?? 1))
+        self.pencil?.play()
+        result(nil)
+      case "volume":
+        self.pencil?.setVolume(Float(args["volume"] as? Double ?? 0), fadeDuration: 0.04)
+        result(nil)
+      case "stop":
+        self.pencil?.pause()
+        result(nil)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+    soundChannel = sound
   }
 
   /// MP4 encoder fed one raw RGBA frame at a time from Dart (replay export).

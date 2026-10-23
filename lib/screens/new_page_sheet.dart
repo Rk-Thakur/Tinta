@@ -201,7 +201,7 @@ class _NewPageSheetState extends State<NewPageSheet> {
                 onPressed: _create,
                 style: FilledButton.styleFrom(
                   backgroundColor: TintaColors.studioInk,
-                  foregroundColor: Colors.white,
+                  foregroundColor: TintaColors.onInk,
                   shape: const StadiumBorder(),
                   textStyle: TintaType.body(17, weight: FontWeight.w700),
                 ),
@@ -305,7 +305,7 @@ class _SizeChip extends StatelessWidget {
         shape: StadiumBorder(
           side: selected
               ? BorderSide.none
-              : const BorderSide(color: TintaColors.line),
+              : BorderSide(color: TintaColors.line),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -320,7 +320,7 @@ class _SizeChip extends StatelessWidget {
                 style: TintaType.body(
                   14,
                   weight: selected ? FontWeight.w700 : FontWeight.w400,
-                  color: selected ? Colors.white : TintaColors.studioInk,
+                  color: selected ? TintaColors.onInk : TintaColors.studioInk,
                   height: 1,
                 ),
               ),
@@ -355,11 +355,11 @@ class _PxField extends StatelessWidget {
         fillColor: TintaColors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(TintaRadii.sm),
-          borderSide: const BorderSide(color: TintaColors.line),
+          borderSide: BorderSide(color: TintaColors.line),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(TintaRadii.sm),
-          borderSide: const BorderSide(color: TintaColors.line),
+          borderSide: BorderSide(color: TintaColors.line),
         ),
       ),
     );
@@ -390,15 +390,15 @@ class _RisoCard extends StatelessWidget {
           child: Row(
             spacing: 12,
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 42,
                 height: 26,
                 child: Stack(
                   children: [
-                    Positioned(left: 0, child: _InkDot(TintaColors.risoBlue)),
+                    Positioned(left: 0, child: _InkDot(TintaInk.risoBlue)),
                     Positioned(
                       left: 16,
-                      child: _InkDot(TintaColors.fluoroOrange, multiply: true),
+                      child: _InkDot(TintaInk.fluoroOrange, multiply: true),
                     ),
                   ],
                 ),

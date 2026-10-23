@@ -9,7 +9,7 @@ Future<void> _open(
 ) async {
   await tester.pumpWidget(
     MaterialApp(
-      theme: TintaTheme.light(),
+      theme: TintaTheme.app(),
       home: Scaffold(
         body: Builder(
           builder: (context) => TextButton(

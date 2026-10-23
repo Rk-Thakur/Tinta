@@ -30,10 +30,10 @@ class PillButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, fg, border) = switch (variant) {
-      PillVariant.ink => (TintaColors.studioInk, Colors.white, null),
+      PillVariant.ink => (TintaColors.studioInk, TintaColors.onInk, null),
       PillVariant.accent => (
         TintaColors.fluoroOrange,
-        TintaColors.studioInk,
+        TintaInk.studioInk,
         null,
       ),
       PillVariant.outline => (
@@ -41,8 +41,8 @@ class PillButton extends StatelessWidget {
         TintaColors.studioInk,
         TintaColors.studioInk,
       ),
-      PillVariant.light => (TintaColors.newsprint, TintaColors.studioInk, null),
-      PillVariant.blue => (TintaColors.risoBlue, Colors.white, null),
+      PillVariant.light => (TintaInk.newsprint, TintaInk.studioInk, null),
+      PillVariant.blue => (TintaColors.risoBlue, TintaColors.onAccent, null),
     };
     final height = compact ? 40.0 : 52.0;
     final child = Row(
@@ -53,13 +53,17 @@ class PillButton extends StatelessWidget {
           TintaIcon(leading!, size: 18, color: fg, strokeWidth: 2.2),
           const SizedBox(width: 8),
         ],
-        Text(
-          label,
-          style: TintaType.body(
-            compact ? 14 : 16,
-            weight: FontWeight.w700,
-            color: fg,
-            height: 1,
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TintaType.body(
+              compact ? 14 : 16,
+              weight: FontWeight.w700,
+              color: fg,
+              height: 1,
+            ),
           ),
         ),
         if (trailing != null) ...[
@@ -106,7 +110,7 @@ class TileIconButton extends StatelessWidget {
     this.size = 44,
     this.radius = TintaRadii.sm,
     this.background = TintaColors.dock,
-    this.foreground = TintaColors.newsprint,
+    this.foreground = TintaInk.newsprint,
     this.borderColor,
     this.iconSize = 20,
     this.strokeWidth = 2.2,
@@ -182,7 +186,7 @@ class TileIconButton extends StatelessWidget {
               style: TintaType.mono(
                 11,
                 weight: FontWeight.w600,
-                color: TintaColors.studioInk,
+                color: TintaInk.studioInk,
               ),
             ),
           ),
@@ -201,7 +205,7 @@ class ColorDot extends StatelessWidget {
     this.onPressed,
     this.size = 30,
     this.selected = false,
-    this.ringColor = TintaColors.newsprint,
+    this.ringColor = TintaInk.newsprint,
     this.outline,
   });
 

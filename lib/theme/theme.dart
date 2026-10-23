@@ -4,17 +4,19 @@ import 'tokens.dart';
 import 'typography.dart';
 
 abstract final class TintaTheme {
-  static ThemeData light() {
-    const scheme = ColorScheme(
-      brightness: Brightness.light,
+  /// The app's screens, in the current theme and ink pair ([TintaColors]).
+  static ThemeData app() {
+    final dark = TintaColors.isDark;
+    final scheme = ColorScheme(
+      brightness: dark ? Brightness.dark : Brightness.light,
       primary: TintaColors.risoBlue,
-      onPrimary: Colors.white,
+      onPrimary: TintaColors.onAccent,
       secondary: TintaColors.fluoroOrange,
-      onSecondary: TintaColors.studioInk,
+      onSecondary: TintaInk.studioInk,
       tertiary: TintaColors.sun,
-      onTertiary: TintaColors.studioInk,
-      error: Color(0xFFC62828),
-      onError: Colors.white,
+      onTertiary: TintaInk.studioInk,
+      error: dark ? const Color(0xFFFF8A80) : const Color(0xFFC62828),
+      onError: dark ? TintaInk.studioInk : Colors.white,
       surface: TintaColors.newsprint,
       onSurface: TintaColors.studioInk,
       onSurfaceVariant: TintaColors.ink2,
@@ -29,26 +31,26 @@ abstract final class TintaTheme {
 
   /// Studio mode: dark chrome around the page.
   static ThemeData studio() {
-    const scheme = ColorScheme(
+    final scheme = ColorScheme(
       brightness: Brightness.dark,
-      primary: TintaColors.newsprint,
-      onPrimary: TintaColors.studioInk,
-      secondary: TintaColors.fluoroOrange,
-      onSecondary: TintaColors.studioInk,
+      primary: TintaInk.newsprint,
+      onPrimary: TintaInk.studioInk,
+      secondary: TintaInk.fluoroOrange,
+      onSecondary: TintaInk.studioInk,
       tertiary: TintaColors.sun,
-      onTertiary: TintaColors.studioInk,
+      onTertiary: TintaInk.studioInk,
       error: Color(0xFFFF8A80),
-      onError: TintaColors.studioInk,
-      surface: TintaColors.studioInk,
-      onSurface: TintaColors.newsprint,
+      onError: TintaInk.studioInk,
+      surface: TintaInk.studioInk,
+      onSurface: TintaInk.newsprint,
       onSurfaceVariant: TintaColors.studioMuted,
-      outline: TintaColors.ink2,
+      outline: TintaInk.ink2,
       surfaceContainer: TintaColors.dock,
       surfaceContainerHighest: TintaColors.dockRaised,
-      inverseSurface: TintaColors.newsprint,
-      onInverseSurface: TintaColors.studioInk,
+      inverseSurface: TintaInk.newsprint,
+      onInverseSurface: TintaInk.studioInk,
     );
-    return _base(scheme, TintaColors.studioInk);
+    return _base(scheme, TintaInk.studioInk);
   }
 
   static ThemeData _base(ColorScheme scheme, Color ground) {
@@ -74,7 +76,7 @@ abstract final class TintaTheme {
         dialBackgroundColor: TintaColors.segmentTrack,
         dialHandColor: TintaColors.risoBlue,
         dayPeriodColor: TintaColors.sun,
-        dayPeriodTextColor: TintaColors.studioInk,
+        dayPeriodTextColor: TintaInk.studioInk,
         entryModeIconColor: TintaColors.ink2,
         helpTextStyle: TintaType.label(),
         hourMinuteTextStyle: TintaType.display(44),
@@ -90,8 +92,10 @@ abstract final class TintaTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: TintaColors.studioInk,
-        contentTextStyle: TintaType.body(14, color: TintaColors.newsprint),
+        backgroundColor: TintaColors.isDark
+            ? TintaColors.dock
+            : TintaInk.studioInk,
+        contentTextStyle: TintaType.body(14, color: TintaInk.newsprint),
         actionTextColor: TintaColors.sun,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(TintaRadii.md),

@@ -10,6 +10,7 @@ import '../data/prefs.dart';
 import '../data/studio_store.dart';
 import '../drawing/canvas_controller.dart';
 import '../drawing/page_canvas.dart';
+import '../services/pencil_sound.dart';
 import 'color_screen.dart';
 import 'export_sheet.dart';
 import 'layers_screen.dart';
@@ -35,6 +36,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
   late SketchPage _page;
   CanvasController? _controller;
   final _viewport = PageViewport();
+  final _sound = PencilSound();
 
   /// Focus mode: rail and dock slide away while ink is going down, and
   /// come back shortly after the pen lifts (not between quick strokes).
@@ -90,6 +92,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
 
   @override
   void dispose() {
+    _sound.dispose();
     // Nothing drawn: don't leave an empty page in the library. Deferred to
     // after this frame, since notifying listeners while unmounting isn't allowed.
     final store = _store;
@@ -135,7 +138,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
         value: SystemUiOverlayStyle.light,
         child: Theme(
           data: Theme.of(context)
-              .copyWith(scaffoldBackgroundColor: TintaColors.studioInk),
+              .copyWith(scaffoldBackgroundColor: TintaInk.studioInk),
           child: Scaffold(
             body: ListenableBuilder(
               listenable: _c,
@@ -157,6 +160,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
                         controller: _c,
                         paper: _page.paper,
                         twoFingerUndo: prefs.twoFingerUndo,
+                        sound: _sound..enabled = prefs.pencilSounds,
                         viewport: _viewport,
                         padding: EdgeInsets.fromLTRB(
                           12,
@@ -275,12 +279,12 @@ class _TopBar extends StatelessWidget {
         icon: icon,
         label: label,
         badge: badge,
-        background: light ? TintaColors.newsprint : TintaColors.dock,
+        background: light ? TintaInk.newsprint : TintaColors.dock,
         foreground: light
-            ? TintaColors.studioInk
+            ? TintaInk.studioInk
             : (onPressed == null
                   ? TintaColors.studioDisabled
-                  : TintaColors.newsprint),
+                  : TintaInk.newsprint),
         onPressed: onPressed,
       );
     }
@@ -319,7 +323,7 @@ class _TopBar extends StatelessWidget {
                         style: TintaType.body(
                           15,
                           weight: FontWeight.w700,
-                          color: TintaColors.newsprint,
+                          color: TintaInk.newsprint,
                           height: 1.3,
                         ),
                       ),
@@ -396,7 +400,7 @@ class _InkRow extends StatelessWidget {
               color: color,
               label: label,
               selected: inking && c.color == color,
-              outline: color == TintaColors.studioInk ? TintaColors.ink2 : null,
+              outline: color == TintaInk.studioInk ? TintaInk.ink2 : null,
               onPressed: () => c.color = color,
             ),
           Semantics(
@@ -424,7 +428,7 @@ class _InkRow extends StatelessWidget {
                         TintaIcons.plus,
                         size: 16,
                         strokeWidth: 2.6,
-                        color: TintaColors.newsprint,
+                        color: TintaInk.newsprint,
                       ),
                     ),
                   ),
@@ -474,7 +478,7 @@ class _Dock extends StatelessWidget {
             iconSize: 22,
             strokeWidth: 2,
             background: Colors.transparent,
-            foreground: TintaColors.newsprint,
+            foreground: TintaInk.newsprint,
             onPressed: () =>
                 Navigator.of(context)
                     .pushNamed(Routes.brushes, arguments: controller),
@@ -547,7 +551,7 @@ class _PickBar extends StatelessWidget {
           const TintaIcon(
             TintaIcons.eyedropper,
             size: 18,
-            color: TintaColors.studioInk,
+            color: TintaInk.studioInk,
           ),
           Text(
             'Tap the page to pick a color',
@@ -594,7 +598,7 @@ class _ZoomChip extends StatelessWidget {
                 widthFactor: 1,
                 child: Text(
                   '${(viewport.zoom * 100).round()}% · Fit',
-                  style: TintaType.mono(12, color: TintaColors.newsprint),
+                  style: TintaType.mono(12, color: TintaInk.newsprint),
                 ),
               ),
             ),

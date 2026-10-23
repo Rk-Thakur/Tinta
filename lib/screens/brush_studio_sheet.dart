@@ -63,7 +63,7 @@ class _BrushStudioSheetState extends State<BrushStudioSheet> {
                     width: 40,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: TintaColors.ink2,
+                      color: TintaInk.ink2,
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -74,10 +74,7 @@ class _BrushStudioSheetState extends State<BrushStudioSheet> {
                     Expanded(
                       child: Text(
                         'Brush studio',
-                        style: TintaType.display(
-                          26,
-                          color: TintaColors.newsprint,
-                        ),
+                        style: TintaType.display(26, color: TintaInk.newsprint),
                       ),
                     ),
                     PillButton(
@@ -114,7 +111,7 @@ class _BrushStudioSheetState extends State<BrushStudioSheet> {
                       ? Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: TintaColors.studioInk,
+                            color: TintaInk.studioInk,
                             borderRadius: BorderRadius.circular(TintaRadii.md),
                           ),
                           child: Text(
@@ -167,7 +164,7 @@ class _PresetRow extends StatelessWidget {
       label: preset.name,
       excludeSemantics: true,
       child: Material(
-        color: TintaColors.studioInk,
+        color: TintaInk.studioInk,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(TintaRadii.md),
           side: selected
@@ -190,7 +187,7 @@ class _PresetRow extends StatelessWidget {
                     style: TintaType.body(
                       15,
                       weight: selected ? FontWeight.w700 : FontWeight.w400,
-                      color: TintaColors.newsprint,
+                      color: TintaInk.newsprint,
                       height: 1.2,
                     ),
                   ),
@@ -231,7 +228,7 @@ class _PreviewPainter extends CustomPainter {
     final stroke = Stroke(
       id: 0,
       brush: preset.kind,
-      color: TintaColors.newsprint,
+      color: TintaInk.newsprint,
       size: math.min(preset.size, 14),
       opacity: preset.opacity,
       presetId: preset.id,
@@ -262,7 +259,7 @@ class _Settings extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: TintaColors.studioInk,
+        color: TintaInk.studioInk,
         borderRadius: BorderRadius.circular(TintaRadii.lg),
       ),
       child: Column(
@@ -296,7 +293,7 @@ class _Settings extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Stroke smoothing',
-                  style: TintaType.body(14, color: TintaColors.newsprint),
+                  style: TintaType.body(14, color: TintaInk.newsprint),
                 ),
               ),
               SegmentedPills<Smoothing>(

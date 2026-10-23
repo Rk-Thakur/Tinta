@@ -9,8 +9,8 @@ enum PaperType {
   coldPress('Cold‑press', Color(0xFFF7F3EA)),
   toned('Toned', TintaColors.paperToned),
   kraft('Kraft', TintaColors.paperKraft),
-  dotGrid('Dot grid', TintaColors.surface),
-  night('Night', TintaColors.studioInk);
+  dotGrid('Dot grid', TintaInk.surface),
+  night('Night', TintaInk.studioInk);
 
   const PaperType(this.label, this.color);
   final String label;
@@ -35,8 +35,7 @@ extension PaperTone on PaperType {
   bool get isDark => this == PaperType.night;
 
   /// Default ink that reads on this paper.
-  Color get defaultInk =>
-      isDark ? TintaColors.newsprint : TintaColors.studioInk;
+  Color get defaultInk => isDark ? TintaInk.newsprint : TintaInk.studioInk;
 }
 
 /// Cover patterns. Stored by name, so only ever append new ones.
@@ -48,7 +47,7 @@ class CoverDesign {
     required this.color,
     required this.band,
     required this.motif,
-    this.motifColor = TintaColors.fluoroOrange,
+    this.motifColor = TintaInk.fluoroOrange,
     this.wordmark,
   });
 
@@ -72,10 +71,7 @@ class SketchPage {
     this.drawnDays = const [],
   });
 
-  static const defaultRisoInks = [
-    TintaColors.risoBlue,
-    TintaColors.fluoroOrange,
-  ];
+  static const defaultRisoInks = [TintaInk.risoBlue, TintaInk.fluoroOrange];
 
   static const defaultLayers = [PageLayer(id: 'l1', name: 'Line art')];
 

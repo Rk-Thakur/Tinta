@@ -58,8 +58,8 @@ abstract final class TintaType {
   );
 
   /// Uppercase section label, e.g. "PAPER", "FORMAT".
-  static TextStyle label({Color color = TintaColors.ink2}) =>
-      mono(12, color: color).copyWith(letterSpacing: 1);
+  static TextStyle label({Color? color}) =>
+      mono(12, color: color ?? TintaColors.ink2).copyWith(letterSpacing: 1);
 
   // Scale from the foundations board.
   static TextStyle get display34 => display(34);

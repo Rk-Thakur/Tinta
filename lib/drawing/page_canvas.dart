@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import '../data/models.dart';
 import '../theme/tokens.dart';
 import '../ui/widgets/paper.dart';
+import '../services/pencil_sound.dart';
 import 'canvas_controller.dart';
 import 'stroke_renderer.dart';
 
@@ -41,7 +42,11 @@ class PageCanvas extends StatefulWidget {
     this.padding = const EdgeInsets.all(20),
     this.twoFingerUndo = true,
     this.viewport,
+    this.sound,
   });
+
+  /// Paper scratch while a stroke goes down.
+  final PencilSound? sound;
 
   /// Reports zoom changes and lets the screen reset to fit.
   final PageViewport? viewport;
@@ -49,6 +54,8 @@ class PageCanvas extends StatefulWidget {
   final CanvasController controller;
   final PaperType paper;
   final EdgeInsets padding;
+
+  /// Two-finger tap undoes, three-finger tap redoes.
   final bool twoFingerUndo;
 
   @override
@@ -89,6 +96,7 @@ class _PageCanvasState extends State<PageCanvas> {
   double _startSpan = 1;
   DateTime? _multiStart;
   double _multiTravel = 0;
+  int _multiFingers = 0;
 
   CanvasController get _c => widget.controller;
   Size get _page => _c.pageSize;
@@ -160,6 +168,7 @@ class _PageCanvasState extends State<PageCanvas> {
       _drawingPointer = e.pointer;
       _strokeStarted = DateTime.now();
       _c.pointerDown(_toPage(e.localPosition), pressure: _pressure(e));
+      _startSound();
       return;
     }
 
@@ -168,7 +177,11 @@ class _PageCanvasState extends State<PageCanvas> {
       _drawingPointer = e.pointer;
       _strokeStarted = DateTime.now();
       _c.pointerDown(_toPage(e.localPosition));
+      _startSound();
       return;
+    }
+    if (_multiStart != null) {
+      _multiFingers = math.max(_multiFingers, _touches.length);
     }
     if (_touches.length == 2) {
       // A second finger means navigation, not drawing.
@@ -178,24 +191,35 @@ class _PageCanvasState extends State<PageCanvas> {
             DateTime.now().difference(_strokeStarted!).inMilliseconds < 300;
         quick ? _c.cancel() : _c.pointerUp();
         _drawingPointer = null;
+        widget.sound?.stop();
       }
       _beginNavigation();
     }
   }
 
-  void _beginNavigation() {
+  void _startSound() {
+    if (_c.tool != CanvasTool.lasso) widget.sound?.start();
+  }
+
+  /// Anchors the pinch on the first two fingers. [fresh] starts a new gesture
+  /// (a tap is timed and its fingers counted from here).
+  void _beginNavigation({bool fresh = true}) {
     final pts = _touches.values.toList();
     _startFocal = (pts[0] + pts[1]) / 2;
     _startSpan = math.max((pts[0] - pts[1]).distance, 1);
     _startScale = _scale;
     _startOrigin = _origin;
-    _multiStart = DateTime.now();
-    _multiTravel = 0;
+    if (fresh) {
+      _multiStart = DateTime.now();
+      _multiTravel = 0;
+      _multiFingers = 2;
+    }
   }
 
   void _move(PointerMoveEvent e) {
     if (e.pointer == _drawingPointer) {
       _c.pointerMove(_toPage(e.localPosition), pressure: _pressure(e));
+      widget.sound?.move(e.delta.distance, e.timeStamp);
       // Keep a drawing finger's position current, so a pinch that starts
       // when the second finger lands measures from where it really is.
       if (_touches.containsKey(e.pointer)) {
@@ -231,18 +255,20 @@ class _PageCanvasState extends State<PageCanvas> {
     if (e.pointer == _drawingPointer) {
       _drawingPointer = null;
       cancelled ? _c.cancel() : _c.pointerUp();
+      widget.sound?.stop();
     }
     if (_touches.remove(e.pointer) == null) return;
 
     if (_multiStart != null && _touches.isEmpty) {
       final quick =
-          DateTime.now().difference(_multiStart!).inMilliseconds < 250;
-      if (!cancelled && quick && _multiTravel < 20 && widget.twoFingerUndo) {
-        _c.undo();
+          DateTime.now().difference(_multiStart!).inMilliseconds < 300;
+      if (!cancelled && quick && _multiTravel < 24 && widget.twoFingerUndo) {
+        _multiFingers >= 3 ? _c.redo() : _c.undo();
       }
       _multiStart = null;
     } else if (_touches.length == 2) {
-      _beginNavigation();
+      // A finger of three lifted: keep pinching with the other two.
+      _beginNavigation(fresh: _multiStart == null);
     }
   }
 
@@ -380,7 +406,7 @@ class _InkLayer extends CustomPainter {
     if (lasso != null && lasso.length > 1) {
       final path = Path()
         ..addPolygon([for (final p in lasso) origin + p * scale], false);
-      _dashed(canvas, path, TintaColors.risoBlue);
+      _dashed(canvas, path, TintaInk.risoBlue);
     }
     final bounds = c.selectionBounds;
     if (bounds != null) {
@@ -391,7 +417,7 @@ class _InkLayer extends CustomPainter {
       _dashed(
         canvas,
         Path()..addRRect(RRect.fromRectAndRadius(r, const Radius.circular(8))),
-        TintaColors.risoBlue,
+        TintaInk.risoBlue,
       );
     }
   }

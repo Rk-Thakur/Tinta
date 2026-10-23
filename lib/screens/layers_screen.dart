@@ -30,7 +30,7 @@ class LayersScreen extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: TintaColors.studioInk,
+        backgroundColor: TintaInk.studioInk,
         body: SafeArea(
           child: ListenableBuilder(
             listenable: c,
@@ -55,7 +55,7 @@ class LayersScreen extends StatelessWidget {
                             'Layers',
                             style: TintaType.display(
                               28,
-                              color: TintaColors.newsprint,
+                              color: TintaInk.newsprint,
                             ),
                           ),
                         ),
@@ -64,7 +64,7 @@ class LayersScreen extends StatelessWidget {
                           label: 'Add layer',
                           strokeWidth: 2.6,
                           background: TintaColors.fluoroOrange,
-                          foreground: TintaColors.studioInk,
+                          foreground: TintaInk.studioInk,
                           onPressed: c.addLayer,
                         ),
                       ],
@@ -212,7 +212,7 @@ class _LayerRow extends StatelessWidget {
                 background: active
                     ? const Color(0x40000000)
                     : TintaColors.dockRaised,
-                foreground: active ? Colors.white : TintaColors.newsprint,
+                foreground: active ? Colors.white : TintaInk.newsprint,
                 onPressed: onToggle,
               ),
               ReorderableDragStartListener(
@@ -260,7 +260,7 @@ class _LayerRow extends StatelessWidget {
           style: TintaType.body(
             14,
             weight: FontWeight.w700,
-            color: TintaColors.studioInk,
+            color: TintaInk.studioInk,
           ),
         ),
       ),
@@ -329,7 +329,7 @@ class _PaperRow extends StatelessWidget {
                     style: TintaType.body(
                       16,
                       weight: FontWeight.w700,
-                      color: TintaColors.newsprint,
+                      color: TintaInk.newsprint,
                       height: 1.2,
                     ),
                   ),
@@ -385,7 +385,7 @@ class _LayerPanel extends StatelessWidget {
     Widget action(
       String label,
       VoidCallback? onPressed, {
-      Color color = TintaColors.newsprint,
+      Color color = TintaInk.newsprint,
     }) => Expanded(
       child: SizedBox(
         height: 44,
@@ -454,7 +454,7 @@ class _LayerPanel extends StatelessWidget {
             children: [
               Text(
                 'Opacity',
-                style: TintaType.body(14, color: TintaColors.newsprint),
+                style: TintaType.body(14, color: TintaInk.newsprint),
               ),
               Expanded(
                 child: Listener(
@@ -475,7 +475,7 @@ class _LayerPanel extends StatelessWidget {
                 child: Text(
                   '${(layer.opacity * 100).round()}%',
                   textAlign: TextAlign.right,
-                  style: TintaType.mono(12, color: TintaColors.newsprint),
+                  style: TintaType.mono(12, color: TintaInk.newsprint),
                 ),
               ),
             ],

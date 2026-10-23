@@ -32,35 +32,35 @@ class _Slide {
 }
 
 // Slide 1 is the design's; 2 and 3 carry the remaining two design principles.
-const _slides = [
+final _slides = [
   _Slide(
     badge: 'Airplane mode: fine',
     title: 'Draw anywhere.\nEven at 30,000 ft.',
     body: 'Every stroke lives on your phone. No account, no cloud, nothing to load.',
     keywords: ['Riso inks', 'Replays', 'Paper grain'],
     art: Artwork(Size(342, 340), [
-      ArtCircle(140, 150, 96, fill: TintaColors.risoBlue, opacity: 0.9),
+      ArtCircle(140, 150, 96, fill: TintaInk.risoBlue, opacity: 0.9),
       ArtCircle(
         214,
         190,
         86,
-        fill: TintaColors.fluoroOrange,
+        fill: TintaInk.fluoroOrange,
         opacity: 0.85,
         multiply: true,
       ),
       ArtRect(40, 250, 110, 34, rx: 17, fill: TintaColors.sun),
       ArtPath(
         'M30 80c40-30 70 10 100-10s60-40 90-10 50 30 90 0',
-        stroke: TintaColors.studioInk,
+        stroke: TintaInk.studioInk,
         strokeWidth: 3,
       ),
       ArtPath(
         'M180 280l18-50 70-70 18 18-70 70z',
-        fill: TintaColors.newsprint,
-        stroke: TintaColors.studioInk,
+        fill: TintaInk.newsprint,
+        stroke: TintaInk.studioInk,
         strokeWidth: 3,
       ),
-      ArtPath('M180 280l18-50 12 12z', fill: TintaColors.studioInk),
+      ArtPath('M180 280l18-50 12 12z', fill: TintaInk.studioInk),
     ]),
   ),
   _Slide(
@@ -77,7 +77,7 @@ const _slides = [
         200,
         rx: 8,
         fill: TintaColors.paperToned,
-        stroke: TintaColors.studioInk,
+        stroke: TintaInk.studioInk,
         strokeWidth: 3,
       ),
       ArtRect(
@@ -87,19 +87,19 @@ const _slides = [
         200,
         rx: 8,
         fill: TintaColors.paperKraft,
-        stroke: TintaColors.studioInk,
+        stroke: TintaInk.studioInk,
         strokeWidth: 3,
       ),
       ArtPath(
         'M160 240c30-40 60-40 100-10',
-        stroke: TintaColors.risoBlue,
+        stroke: TintaInk.risoBlue,
         strokeWidth: 8,
       ),
       ArtCircle(
         230,
         160,
         26,
-        fill: TintaColors.fluoroOrange,
+        fill: TintaInk.fluoroOrange,
         opacity: 0.9,
         multiply: true,
       ),
@@ -113,22 +113,22 @@ const _slides = [
     body:
         'Dark chrome around the page and every tool within reach of one hand.',
     art: Artwork(Size(342, 340), [
-      ArtRect(0, 0, 342, 340, fill: TintaColors.studioInk),
+      ArtRect(0, 0, 342, 340, fill: TintaInk.studioInk),
       ArtRect(70, 40, 202, 200, rx: 6, fill: TintaColors.paperSmooth),
-      ArtCircle(171, 120, 40, stroke: TintaColors.studioInk, strokeWidth: 3),
+      ArtCircle(171, 120, 40, stroke: TintaInk.studioInk, strokeWidth: 3),
       ArtPath(
         'M100 210c50-10 100-10 140 0',
-        stroke: TintaColors.risoBlue,
+        stroke: TintaInk.risoBlue,
         strokeWidth: 10,
       ),
       ArtRect(60, 264, 222, 52, rx: 26, fill: TintaColors.dock),
-      ArtRect(70, 272, 36, 36, rx: 14, fill: TintaColors.newsprint),
+      ArtRect(70, 272, 36, 36, rx: 14, fill: TintaInk.newsprint),
       ArtCircle(
         260,
         290,
         13,
-        fill: TintaColors.risoBlue,
-        stroke: TintaColors.newsprint,
+        fill: TintaInk.risoBlue,
+        stroke: TintaInk.newsprint,
         strokeWidth: 3,
       ),
     ]),
@@ -227,14 +227,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onPressed: _openFirstBook,
                       style: FilledButton.styleFrom(
                         backgroundColor: TintaColors.studioInk,
-                        foregroundColor: Colors.white,
+                        foregroundColor: TintaColors.onInk,
                         shape: const StadiumBorder(),
                         textStyle: TintaType.body(17, weight: FontWeight.w700),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Flexible(
+                          const Flexible(
                             child: Text(
                               'Open my first sketchbook',
                               overflow: TextOverflow.ellipsis,
@@ -245,7 +245,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             TintaIcons.arrowRight,
                             size: 20,
                             strokeWidth: 2.2,
-                            color: Colors.white,
+                            color: TintaColors.onInk,
                           ),
                         ],
                       ),
@@ -276,8 +276,9 @@ class _SlideView extends StatelessWidget {
           Container(
             height: 340,
             clipBehavior: Clip.antiAlias,
+            // The art is printed matter: a white card in every theme.
             decoration: BoxDecoration(
-              color: TintaColors.surface,
+              color: TintaInk.surface,
               border: Border.all(color: TintaColors.line),
               borderRadius: BorderRadius.circular(28),
             ),
@@ -290,6 +291,7 @@ class _SlideView extends StatelessWidget {
                   child: OnDeviceBadge(
                     text: slide.badge,
                     icon: slide.badgeIcon,
+                    alwaysDark: true,
                   ),
                 ),
               ],

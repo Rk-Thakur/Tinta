@@ -215,15 +215,15 @@ class _SearchField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(TintaRadii.md),
-          borderSide: const BorderSide(color: TintaColors.line),
+          borderSide: BorderSide(color: TintaColors.line),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(TintaRadii.md),
-          borderSide: const BorderSide(color: TintaColors.line),
+          borderSide: BorderSide(color: TintaColors.line),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(TintaRadii.md),
-          borderSide: const BorderSide(color: TintaColors.studioInk, width: 2),
+          borderSide: BorderSide(color: TintaColors.studioInk, width: 2),
         ),
       ),
     );
@@ -253,7 +253,7 @@ class _PromptCard extends StatelessWidget {
                   'DAILY PROMPT · ${prompt.minutes} MIN',
                   style: TintaType.mono(
                     11,
-                    color: TintaColors.studioInk,
+                    color: TintaInk.studioInk,
                   ).copyWith(letterSpacing: 1),
                 ),
                 const SizedBox(height: 4),
@@ -262,6 +262,7 @@ class _PromptCard extends StatelessWidget {
                   style: TintaType.display(
                     20,
                     weight: FontWeight.w600,
+                    color: TintaInk.studioInk,
                   ).copyWith(height: 1.15),
                 ),
               ],
@@ -274,7 +275,7 @@ class _PromptCard extends StatelessWidget {
             size: 52,
             radius: TintaRadii.md,
             iconSize: 22,
-            background: TintaColors.studioInk,
+            background: TintaInk.studioInk,
             foreground: TintaColors.sun,
             onPressed: () {
               // Make the page here, then open it on the canvas.
@@ -384,7 +385,7 @@ class _LoosePageCard extends StatelessWidget {
       color: TintaColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: TintaColors.line),
+        side: BorderSide(color: TintaColors.line),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -468,7 +469,7 @@ class NewBookTile extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 6,
                       children: [
-                        const TintaIcon(
+                        TintaIcon(
                           TintaIcons.plus,
                           size: 24,
                           strokeWidth: 2.2,

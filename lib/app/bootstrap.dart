@@ -106,7 +106,7 @@ class SplashScreen extends StatelessWidget {
       child: Directionality(
         textDirection: TextDirection.ltr,
         child: ColoredBox(
-          color: TintaColors.newsprint,
+          color: TintaInk.newsprint,
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -122,7 +122,7 @@ class SplashScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontFamily: 'DMSans',
                       fontSize: 14,
-                      color: TintaColors.ink2,
+                      color: TintaInk.ink2,
                     ),
                   ),
                 ),

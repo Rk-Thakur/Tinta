@@ -21,16 +21,16 @@ Future<List<int>> renderIcon(
   double radius = 0,
   double markHeight = 0.6,
   bool transparent = false,
-  Color markColor = TintaColors.studioInk,
+  Color markColor = TintaInk.studioInk,
 }) async {
   final recorder = ui.PictureRecorder();
   final canvas = Canvas(recorder);
   final s = size.toDouble();
   final bg = background ??
       switch (style) {
-        LogoStyle.studio || LogoStyle.small => TintaColors.studioInk,
+        LogoStyle.studio || LogoStyle.small => TintaInk.studioInk,
         LogoStyle.sun => TintaColors.sun,
-        _ => TintaColors.newsprint,
+        _ => TintaInk.newsprint,
       };
   if (!transparent) {
     final paint = Paint()..color = bg;

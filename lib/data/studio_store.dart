@@ -118,10 +118,10 @@ class StudioStore extends ChangeNotifier {
       id: 'riso-duo',
       name: 'Riso duo',
       colors: [
-        TintaColors.risoBlue,
-        TintaColors.fluoroOrange,
+        TintaInk.risoBlue,
+        TintaInk.fluoroOrange,
         TintaColors.overprintViolet,
-        TintaColors.studioInk,
+        TintaInk.studioInk,
       ],
     ),
     Palette(

@@ -37,7 +37,7 @@ class _ColorScreenState extends State<ColorScreen> {
   @override
   void initState() {
     super.initState();
-    _hsv = HSVColor.fromColor(_c?.color ?? TintaColors.risoBlue);
+    _hsv = HSVColor.fromColor(_c?.color ?? TintaInk.risoBlue);
   }
 
   void _preview(HSVColor hsv) => setState(() => _hsv = hsv);
@@ -93,7 +93,7 @@ class _ColorScreenState extends State<ColorScreen> {
     final other = risoInks.length == 2
         ? risoInks.firstWhere((x) => x != c!.color, orElse: () => risoInks[1])
         : null;
-    final partner = other ?? TintaColors.fluoroOrange;
+    final partner = other ?? TintaInk.fluoroOrange;
 
     return Scaffold(
       body: SafeArea(
@@ -247,7 +247,7 @@ class _ColorScreenState extends State<ColorScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         textStyle: TintaType.body(14, weight: FontWeight.w500),
                       ),
-                      icon: const TintaIcon(
+                      icon: TintaIcon(
                         TintaIcons.plus,
                         size: 16,
                         strokeWidth: 2.4,
@@ -387,7 +387,7 @@ class _PaletteCard extends StatelessWidget {
                   child: InkResponse(
                     onTap: onEdit,
                     radius: 22,
-                    child: const SizedBox(
+                    child: SizedBox(
                       width: 40,
                       height: 32,
                       child: Center(

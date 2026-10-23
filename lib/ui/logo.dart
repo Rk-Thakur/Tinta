@@ -118,7 +118,7 @@ void paintLogoMark(
   Canvas canvas,
   Rect rect,
   LogoStyle style, {
-  Color color = TintaColors.studioInk,
+  Color color = TintaInk.studioInk,
   DotPose dot = DotPose.rest,
 }) {
   const b = LogoGeometry.bounds;
@@ -153,7 +153,7 @@ void paintLogoMark(
     case LogoStyle.small:
       canvas.drawPath(
         t,
-        stroke(TintaColors.fluoroOrange, LogoGeometry.stroke + 2),
+        stroke(TintaInk.fluoroOrange, LogoGeometry.stroke + 2),
       );
       _drawDot(
         canvas,
@@ -171,12 +171,12 @@ void paintLogoMark(
       canvas.saveLayer(b.inflate(4), Paint());
       canvas.drawPath(
         t.shift(-half),
-        stroke(TintaColors.risoBlue, LogoGeometry.plateStroke),
+        stroke(TintaInk.risoBlue, LogoGeometry.plateStroke),
       );
       canvas.drawPath(
         t.shift(half),
         stroke(
-          TintaColors.fluoroOrange,
+          TintaInk.fluoroOrange,
           LogoGeometry.plateStroke,
           blend: dark ? BlendMode.screen : BlendMode.multiply,
         ),
@@ -185,7 +185,7 @@ void paintLogoMark(
       _drawDot(
         canvas,
         LogoGeometry.dotRadius,
-        dotPaint..color = dark ? TintaColors.sun : TintaColors.studioInk,
+        dotPaint..color = dark ? TintaColors.sun : TintaInk.studioInk,
         dot,
       );
   }
@@ -198,7 +198,7 @@ class TintaLogoMark extends StatefulWidget {
     super.key,
     this.size = 48,
     this.style = LogoStyle.paper,
-    this.color = TintaColors.studioInk,
+    this.color = TintaInk.studioInk,
     this.bounce = false,
   });
 
@@ -300,7 +300,7 @@ class TintaLockup extends StatelessWidget {
   const TintaLockup({
     super.key,
     this.height = 32,
-    this.dark = false,
+    this.dark,
     this.bounce = false,
   });
 
@@ -308,13 +308,15 @@ class TintaLockup extends StatelessWidget {
   final double height;
 
   /// On studio ink: screened mark, newsprint wordmark, sun full stop.
-  final bool dark;
+  /// Follows the app theme when null.
+  final bool? dark;
 
   /// Bounce the mark's dot.
   final bool bounce;
 
   @override
   Widget build(BuildContext context) {
+    final dark = this.dark ?? TintaColors.isDark;
     return Semantics(
       label: 'tinta',
       excludeSemantics: true,
@@ -333,13 +335,13 @@ class TintaLockup extends StatelessWidget {
               text: 'tinta',
               style: TintaType.display(
                 height,
-                color: dark ? TintaColors.newsprint : TintaColors.studioInk,
+                color: dark ? TintaInk.newsprint : TintaInk.studioInk,
               ).copyWith(height: 1),
               children: [
                 TextSpan(
                   text: '.',
                   style: TextStyle(
-                    color: dark ? TintaColors.sun : TintaColors.fluoroOrange,
+                    color: dark ? TintaColors.sun : TintaInk.fluoroOrange,
                   ),
                 ),
               ],

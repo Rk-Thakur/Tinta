@@ -171,14 +171,14 @@ class TintaDialog extends StatelessWidget {
     required this.body,
     required this.actions,
     this.icon,
-    this.iconColor = TintaColors.studioInk,
+    this.iconColor,
   });
 
   final String title;
   final Widget body;
   final List<Widget> actions;
   final TintaIcons? icon;
-  final Color iconColor;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -209,7 +209,8 @@ class TintaDialog extends StatelessWidget {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: iconColor.withValues(alpha: 0.12),
+                              color: (iconColor ?? TintaColors.studioInk)
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(
                                 TintaRadii.sm,
                               ),
@@ -219,7 +220,7 @@ class TintaDialog extends StatelessWidget {
                                 icon!,
                                 size: 20,
                                 strokeWidth: 2.4,
-                                color: iconColor,
+                                color: iconColor ?? TintaColors.studioInk,
                               ),
                             ),
                           ),
@@ -317,21 +318,18 @@ class _PromptDialogState extends State<_PromptDialog> {
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TintaRadii.md),
-            borderSide: const BorderSide(color: TintaColors.line),
+            borderSide: BorderSide(color: TintaColors.line),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TintaRadii.md),
-            borderSide: const BorderSide(
-              color: TintaColors.studioInk,
-              width: 2,
-            ),
+            borderSide: BorderSide(color: TintaColors.studioInk, width: 2),
           ),
           suffixIcon: _text.text.isEmpty
               ? null
               : IconButton(
                   tooltip: 'Clear',
                   onPressed: () => setState(_text.clear),
-                  icon: const TintaIcon(
+                  icon: TintaIcon(
                     TintaIcons.close,
                     size: 16,
                     color: TintaColors.ink2,

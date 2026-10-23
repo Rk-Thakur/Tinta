@@ -126,15 +126,15 @@ class _SketchbookSheetState extends State<SketchbookSheet> {
                 fillColor: TintaColors.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(TintaRadii.md),
-                  borderSide: const BorderSide(color: TintaColors.line),
+                  borderSide: BorderSide(color: TintaColors.line),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(TintaRadii.md),
-                  borderSide: const BorderSide(color: TintaColors.line),
+                  borderSide: BorderSide(color: TintaColors.line),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(TintaRadii.md),
-                  borderSide: const BorderSide(
+                  borderSide: BorderSide(
                     color: TintaColors.studioInk,
                     width: 2,
                   ),
@@ -246,7 +246,7 @@ class _SketchbookSheetState extends State<SketchbookSheet> {
                 onPressed: _save,
                 style: FilledButton.styleFrom(
                   backgroundColor: TintaColors.studioInk,
-                  foregroundColor: Colors.white,
+                  foregroundColor: TintaColors.onInk,
                   shape: const StadiumBorder(),
                   textStyle: TintaType.body(17, weight: FontWeight.w700),
                 ),

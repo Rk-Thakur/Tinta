@@ -1,12 +1,15 @@
 package com.example.tinta
 
+import android.media.AudioAttributes
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.media.MediaMuxer
+import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import android.os.StatFs
+import io.flutter.FlutterInjector
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -17,6 +20,8 @@ class MainActivity : FlutterActivity() {
     private val videoThread = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private var encoder: VideoEncoder? = null
+    private var pencil: MediaPlayer? = null
+
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -27,6 +32,29 @@ class MainActivity : FlutterActivity() {
                 result.success(StatFs(filesDir.absolutePath).availableBytes)
             } else {
                 result.notImplemented()
+            }
+        }
+
+        // Pencil sound: one looping player; Dart sets the volume from stroke speed.
+        MethodChannel(messenger, "tinta/sound").setMethodCallHandler { call, result ->
+            try {
+                when (call.method) {
+                    "start" -> {
+                        val player = pencil ?: createPencil(call.argument<String>("asset")!!).also { pencil = it }
+                        player.setVolume(0f, 0f)
+                        player.seekTo((Math.random() * player.duration).toInt())
+                        player.start()
+                    }
+                    "volume" -> {
+                        val v = (call.argument<Double>("volume") ?: 0.0).toFloat()
+                        pencil?.setVolume(v, v)
+                    }
+                    "stop" -> pencil?.takeIf { it.isPlaying }?.pause()
+                    else -> return@setMethodCallHandler result.notImplemented()
+                }
+                result.success(null)
+            } catch (t: Throwable) {
+                result.error("sound", t.message, null)
             }
         }
 
@@ -69,6 +97,34 @@ class MainActivity : FlutterActivity() {
                 }
             }
         }
+    }
+
+    private fun createPencil(asset: String): MediaPlayer {
+        val key = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(asset)
+        return assets.openFd(key).use { fd ->
+            MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_GAME)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build(),
+                )
+                setDataSource(fd.fileDescriptor, fd.startOffset, fd.length)
+                isLooping = true
+                prepare()
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        pencil?.takeIf { it.isPlaying }?.pause()
+    }
+
+    override fun onDestroy() {
+        pencil?.release()
+        pencil = null
+        super.onDestroy()
     }
 }
 
