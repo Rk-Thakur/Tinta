@@ -191,7 +191,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onLongPress: kDebugMode
                         ? () => Navigator.of(context).pushNamed(Routes.kit)
                         : null,
-                    child: const TintaLockup(height: 26),
+                    child: const TintaLockup(height: 26, bounce: true),
                   ),
                   const Spacer(),
                   TextButton(

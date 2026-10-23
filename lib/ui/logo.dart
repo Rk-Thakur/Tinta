@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../theme/tokens.dart';
@@ -59,12 +61,65 @@ abstract final class LogoGeometry {
     ..lineTo(barRight, 0);
 }
 
+/// Where the full stop is mid-bounce: [lift] up from its rest position (design
+/// units) and squash/stretch [scaleX]/[scaleY] about its bottom.
+class DotPose {
+  const DotPose({this.lift = 0, this.scaleX = 1, this.scaleY = 1});
+
+  static const rest = DotPose();
+
+  final double lift;
+  final double scaleX;
+  final double scaleY;
+}
+
+/// The dot's bounce over one loop (t in 0..1): crouch, a big hop, a squash,
+/// a small hop, a little squash, then rest for the remainder.
+DotPose dotBounce(double t) {
+  double hump(double p) => 4 * p * (1 - p); // 0 → 1 → 0
+  double sine(double p) => math.sin(math.pi * p);
+  DotPose hop(double p, double height, double stretch) {
+    // Stretched while moving fast (take-off, landing), round at the top.
+    final sy = 1 + stretch * (2 * p - 1).abs();
+    return DotPose(
+      lift: height * hump(p),
+      scaleX: 1 / math.sqrt(sy),
+      scaleY: sy,
+    );
+  }
+
+  DotPose squash(double p, double amount) => DotPose(
+    scaleX: 1 + amount * 0.75 * sine(p),
+    scaleY: 1 - amount * sine(p),
+  );
+
+  if (t < 0.06) return squash(t / 0.06, 0.16); // crouch
+  if (t < 0.34) return hop((t - 0.06) / 0.28, 14, 0.14);
+  if (t < 0.42) return squash((t - 0.34) / 0.08, 0.26);
+  if (t < 0.56) return hop((t - 0.42) / 0.14, 5, 0.06);
+  if (t < 0.61) return squash((t - 0.56) / 0.05, 0.1);
+  return DotPose.rest;
+}
+
+void _drawDot(Canvas canvas, double radius, Paint paint, DotPose pose) {
+  canvas.save();
+  // Squash about the dot's bottom so it lands on the baseline.
+  canvas.translate(
+    LogoGeometry.dot.dx,
+    LogoGeometry.dot.dy - pose.lift + radius * (1 - pose.scaleY),
+  );
+  canvas.scale(pose.scaleX, pose.scaleY);
+  canvas.drawCircle(Offset.zero, radius, paint);
+  canvas.restore();
+}
+
 /// Paints the mark into [rect] (kept square-ish, centred, aspect preserved).
 void paintLogoMark(
   Canvas canvas,
   Rect rect,
   LogoStyle style, {
   Color color = TintaColors.studioInk,
+  DotPose dot = DotPose.rest,
 }) {
   const b = LogoGeometry.bounds;
   final scale = (rect.width / b.width) < (rect.height / b.height)
@@ -94,20 +149,17 @@ void paintLogoMark(
   switch (style) {
     case LogoStyle.oneColor:
       canvas.drawPath(t, stroke(color, LogoGeometry.stroke));
-      canvas.drawCircle(
-        LogoGeometry.dot,
-        LogoGeometry.dotRadius,
-        dotPaint..color = color,
-      );
+      _drawDot(canvas, LogoGeometry.dotRadius, dotPaint..color = color, dot);
     case LogoStyle.small:
       canvas.drawPath(
         t,
         stroke(TintaColors.fluoroOrange, LogoGeometry.stroke + 2),
       );
-      canvas.drawCircle(
-        LogoGeometry.dot,
+      _drawDot(
+        canvas,
         LogoGeometry.dotRadius + 1,
         dotPaint..color = TintaColors.sun,
+        dot,
       );
     case LogoStyle.paper || LogoStyle.sun || LogoStyle.studio:
       final dark = style == LogoStyle.studio;
@@ -130,28 +182,78 @@ void paintLogoMark(
         ),
       );
       canvas.restore();
-      canvas.drawCircle(
-        LogoGeometry.dot,
+      _drawDot(
+        canvas,
         LogoGeometry.dotRadius,
         dotPaint..color = dark ? TintaColors.sun : TintaColors.studioInk,
+        dot,
       );
   }
   canvas.restore();
 }
 
 /// The mark on its own.
-class TintaLogoMark extends StatelessWidget {
+class TintaLogoMark extends StatefulWidget {
   const TintaLogoMark({
     super.key,
     this.size = 48,
     this.style = LogoStyle.paper,
     this.color = TintaColors.studioInk,
+    this.bounce = false,
   });
 
   /// Height; width follows the mark's proportions.
   final double size;
   final LogoStyle style;
   final Color color;
+
+  /// Bounce the full stop (off when the system asks for reduced motion).
+  final bool bounce;
+
+  /// One bounce loop, including the rest between bounces.
+  static const bouncePeriod = Duration(milliseconds: 2400);
+
+  @override
+  State<TintaLogoMark> createState() => _TintaLogoMarkState();
+}
+
+class _TintaLogoMarkState extends State<TintaLogoMark>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _loop = AnimationController(
+    vsync: this,
+    duration: TintaLogoMark.bouncePeriod,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(TintaLogoMark old) {
+    super.didUpdateWidget(old);
+    _sync();
+  }
+
+  void _sync() {
+    final animate =
+        widget.bounce &&
+        !(MediaQuery.maybeDisableAnimationsOf(context) ?? false);
+    if (animate && !_loop.isAnimating) {
+      _loop.repeat();
+    } else if (!animate && _loop.isAnimating) {
+      _loop
+        ..stop()
+        ..value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _loop.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,38 +262,56 @@ class TintaLogoMark extends StatelessWidget {
       label: 'Tinta',
       image: true,
       child: SizedBox(
-        width: size * b.width / b.height,
-        height: size,
-        child: CustomPaint(painter: _MarkPainter(style, color)),
+        width: widget.size * b.width / b.height,
+        height: widget.size,
+        child: RepaintBoundary(
+          child: CustomPaint(
+            painter: _MarkPainter(widget.style, widget.color, _loop),
+          ),
+        ),
       ),
     );
   }
 }
 
 class _MarkPainter extends CustomPainter {
-  _MarkPainter(this.style, this.color);
+  _MarkPainter(this.style, this.color, this.loop) : super(repaint: loop);
 
   final LogoStyle style;
   final Color color;
+  final Animation<double> loop;
 
   @override
-  void paint(Canvas canvas, Size size) =>
-      paintLogoMark(canvas, Offset.zero & size, style, color: color);
+  void paint(Canvas canvas, Size size) => paintLogoMark(
+    canvas,
+    Offset.zero & size,
+    style,
+    color: color,
+    dot: dotBounce(loop.value),
+  );
 
   @override
   bool shouldRepaint(_MarkPainter old) =>
-      old.style != style || old.color != color;
+      old.style != style || old.color != color || old.loop != loop;
 }
 
 /// Mark + "tinta." wordmark, as on the lockup board.
 class TintaLockup extends StatelessWidget {
-  const TintaLockup({super.key, this.height = 32, this.dark = false});
+  const TintaLockup({
+    super.key,
+    this.height = 32,
+    this.dark = false,
+    this.bounce = false,
+  });
 
   /// Cap-ish height of the wordmark; the mark is drawn a little taller.
   final double height;
 
   /// On studio ink: screened mark, newsprint wordmark, sun full stop.
   final bool dark;
+
+  /// Bounce the mark's dot.
+  final bool bounce;
 
   @override
   Widget build(BuildContext context) {
@@ -206,6 +326,7 @@ class TintaLockup extends StatelessWidget {
           TintaLogoMark(
             size: height * 1.15,
             style: dark ? LogoStyle.studio : LogoStyle.paper,
+            bounce: bounce,
           ),
           Text.rich(
             TextSpan(

@@ -41,7 +41,7 @@ class _KitScreenState extends State<KitScreen> {
             48,
           ),
           children: [
-            const TintaLockup(height: 44),
+            const TintaLockup(height: 44, bounce: true),
             const SizedBox(height: 16),
             // The app icon family and the one-color marks.
             Wrap(
@@ -81,7 +81,7 @@ class _KitScreenState extends State<KitScreen> {
                 color: TintaColors.studioInk,
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const TintaLockup(height: 32, dark: true),
+              child: const TintaLockup(height: 32, dark: true, bounce: true),
             ),
             const SizedBox(height: 12),
             Text(
