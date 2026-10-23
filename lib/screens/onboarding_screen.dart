@@ -8,6 +8,7 @@ import '../data/prefs.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
 import '../ui/art.dart';
+import '../ui/logo.dart';
 import '../ui/widgets/paper.dart';
 import '../ui/widgets/widgets.dart';
 
@@ -190,18 +191,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onLongPress: kDebugMode
                         ? () => Navigator.of(context).pushNamed(Routes.kit)
                         : null,
-                    child: Text.rich(
-                      TextSpan(
-                        text: 'tinta',
-                        style: TintaType.display(26),
-                        children: const [
-                          TextSpan(
-                            text: '.',
-                            style: TextStyle(color: TintaColors.fluoroOrange),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: const TintaLockup(height: 26),
                   ),
                   const Spacer(),
                   TextButton(

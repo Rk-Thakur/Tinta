@@ -8,6 +8,7 @@ import 'package:tinta/app/routes.dart';
 import 'package:tinta/data/library_store.dart';
 import 'package:tinta/data/models.dart';
 import 'package:tinta/drawing/page_canvas.dart';
+import 'package:tinta/ui/logo.dart';
 import 'package:tinta/ui/widgets/paper.dart';
 import 'package:tinta/ui/widgets/size_slider.dart';
 
@@ -348,6 +349,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(emptyState, findsOneWidget);
     expect(library.loosePages, isEmpty);
+  });
+
+  testWidgets('logo: every style and the lockups render', (tester) async {
+    await pumpPhone(
+      tester,
+      const MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              TintaLockup(),
+              TintaLockup(dark: true),
+              Row(
+                children: [
+                  TintaLogoMark(style: LogoStyle.paper),
+                  TintaLogoMark(style: LogoStyle.studio),
+                  TintaLogoMark(style: LogoStyle.sun),
+                  TintaLogoMark(style: LogoStyle.small),
+                  TintaLogoMark(style: LogoStyle.oneColor),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.byType(TintaLogoMark), findsNWidgets(7));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('every cover design renders', (tester) async {

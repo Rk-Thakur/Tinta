@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app/routes.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
+import '../ui/logo.dart';
 import '../ui/widgets/widgets.dart';
 
 /// Dev-only gallery of the foundations board: tokens, type, components,
@@ -40,32 +41,47 @@ class _KitScreenState extends State<KitScreen> {
             48,
           ),
           children: [
-            Row(
+            const TintaLockup(height: 44),
+            const SizedBox(height: 16),
+            // The app icon family and the one-color marks.
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: TintaColors.studioInk,
-                    borderRadius: BorderRadius.circular(16),
+                for (final (bg, style) in const [
+                  (TintaColors.surface, LogoStyle.paper),
+                  (TintaColors.studioInk, LogoStyle.studio),
+                  (TintaColors.sun, LogoStyle.sun),
+                  (TintaColors.studioInk, LogoStyle.small),
+                ])
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: TintaColors.line),
+                    ),
+                    alignment: Alignment.center,
+                    child: TintaLogoMark(size: 44, style: style),
                   ),
-                  alignment: Alignment.center,
-                  child: const _Squiggle(),
-                ),
-                const SizedBox(width: 12),
-                Text.rich(
-                  TextSpan(
-                    text: 'tinta',
-                    style: TintaType.display(44),
-                    children: const [
-                      TextSpan(
-                        text: '.',
-                        style: TextStyle(color: TintaColors.fluoroOrange),
-                      ),
-                    ],
-                  ),
+                const TintaLogoMark(size: 40, style: LogoStyle.oneColor),
+                const TintaLogoMark(
+                  size: 40,
+                  style: LogoStyle.oneColor,
+                  color: TintaColors.risoBlue,
                 ),
               ],
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: TintaColors.studioInk,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const TintaLockup(height: 32, dark: true),
             ),
             const SizedBox(height: 12),
             Text(
@@ -338,39 +354,4 @@ class _Card extends StatelessWidget {
       ],
     ),
   );
-}
-
-/// The logo squiggle, drawn in fluoro orange.
-class _Squiggle extends StatelessWidget {
-  const _Squiggle();
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.square(
-    dimension: 28,
-    child: CustomPaint(painter: _SquigglePainter()),
-  );
-}
-
-class _SquigglePainter extends CustomPainter {
-  const _SquigglePainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final s = size.width / 24;
-    final p = Path()
-      ..moveTo(4 * s, 17 * s)
-      ..relativeCubicTo(3 * s, -8 * s, 6 * s, -10 * s, 8 * s, -6 * s)
-      ..relativeCubicTo(2 * s, 4 * s, 4 * s, 3 * s, 8 * s, -5 * s);
-    canvas.drawPath(
-      p,
-      Paint()
-        ..color = TintaColors.fluoroOrange
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4 * s
-        ..strokeCap = StrokeCap.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
