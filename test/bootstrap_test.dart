@@ -27,6 +27,11 @@ void main() {
     final mark = tester.widget<TintaLogoMark>(find.byType(TintaLogoMark));
     expect(mark.bounce, isTrue);
     expect(mark.size, SplashScreen.markHeight);
+    // Newsprint edge to edge, not just behind the logo.
+    expect(
+      tester.getSize(find.byType(SplashScreen)),
+      tester.view.physicalSize / tester.view.devicePixelRatio,
+    );
 
     // Loaded quickly: the splash still stays for one bounce.
     loading.complete(_data(onboarded: false));

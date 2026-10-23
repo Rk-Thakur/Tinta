@@ -66,6 +66,12 @@ class _TintaBootstrapState extends State<TintaBootstrap> {
     final data = _data;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 280),
+      // Fill the screen; the default layout would shrink the splash to its logo.
+      layoutBuilder: (current, previous) => Stack(
+        fit: StackFit.expand,
+        textDirection: TextDirection.ltr,
+        children: [...previous, ?current],
+      ),
       child: data == null
           ? SplashScreen(key: const ValueKey('splash'), error: _error)
           : TintaApp(
