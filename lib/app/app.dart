@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../data/library_store.dart';
 import '../data/prefs.dart';
 import '../data/studio_store.dart';
+import '../services/tips.dart';
 import '../theme/theme.dart';
 import '../theme/tokens.dart';
 import 'routes.dart';
@@ -16,12 +17,16 @@ class TintaApp extends StatefulWidget {
     this.library,
     this.studio,
     this.prefs,
+    this.tips,
   });
 
   final String initialRoute;
   final LibraryStore? library;
   final StudioStore? studio;
   final AppPrefs? prefs;
+
+  /// In-app tips; without one there is no store (tests).
+  final TipJar? tips;
 
   @override
   State<TintaApp> createState() => _TintaAppState();
@@ -31,6 +36,7 @@ class _TintaAppState extends State<TintaApp> with WidgetsBindingObserver {
   late final LibraryStore _store = widget.library ?? LibraryStore.memory();
   late final StudioStore _studio = widget.studio ?? StudioStore();
   late final AppPrefs _prefs = widget.prefs ?? AppPrefs();
+  late final TipJar _tips = widget.tips ?? TipJar();
 
   @override
   void initState() {
@@ -38,6 +44,9 @@ class _TintaAppState extends State<TintaApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _applyLook();
     _prefs.addListener(_onPrefs);
+    _tips
+      ..onTipped = ((tip) => _prefs.addCoffees(tip.cups))
+      ..start();
   }
 
   /// Theme + ink pair from prefs (and the system, for [ThemeChoice.system]).
@@ -98,6 +107,7 @@ class _TintaAppState extends State<TintaApp> with WidgetsBindingObserver {
     _store.dispose();
     _studio.dispose();
     _prefs.dispose();
+    _tips.dispose();
     super.dispose();
   }
 
@@ -109,22 +119,26 @@ class _TintaAppState extends State<TintaApp> with WidgetsBindingObserver {
         store: _store,
         child: StudioScope(
           store: _studio,
-          child: MaterialApp(
-            title: 'Tinta',
-            debugShowCheckedModeBanner: false,
-            theme: TintaTheme.app(),
-            initialRoute: widget.initialRoute,
-            // Only the requested route; by default '/x' would also stack '/' under it.
-            onGenerateInitialRoutes: (name) => [
-              Routes.generate(RouteSettings(name: name)),
-            ],
-            onGenerateRoute: Routes.generate,
-            // Status bar follows the theme; studio screens override this.
-            builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
-              value: TintaColors.isDark
-                  ? SystemUiOverlayStyle.light
-                  : SystemUiOverlayStyle.dark,
-              child: child!,
+          child: TipJarScope(
+            jar: _tips,
+            child: MaterialApp(
+              title: 'Tinta',
+              debugShowCheckedModeBanner: false,
+              theme: TintaTheme.app(),
+              initialRoute: widget.initialRoute,
+              // Only the requested route; by default '/x' would also stack '/' under it.
+              onGenerateInitialRoutes: (name) => [
+                Routes.generate(RouteSettings(name: name)),
+              ],
+              onGenerateRoute: Routes.generate,
+              // Status bar follows the theme; studio screens override this.
+              builder: (context, child) =>
+                  AnnotatedRegion<SystemUiOverlayStyle>(
+                    value: TintaColors.isDark
+                        ? SystemUiOverlayStyle.light
+                        : SystemUiOverlayStyle.dark,
+                    child: child!,
+                  ),
             ),
           ),
         ),

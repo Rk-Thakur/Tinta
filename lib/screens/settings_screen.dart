@@ -9,7 +9,7 @@ import '../data/prefs.dart';
 import '../data/studio_store.dart';
 import '../data/vault.dart';
 import '../services/backup.dart';
-import '../services/links.dart';
+import 'tip_sheet.dart';
 import '../services/reminders.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
@@ -29,7 +29,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _busy = false;
   String? _message;
   bool _messageOk = false;
-  bool _tipped = false;
 
   @override
   void didChangeDependencies() {
@@ -141,20 +140,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (picked == null || !mounted) return;
     prefs.reminderTime = picked;
     if (prefs.reminder) await _setReminder(prefs, true);
-  }
-
-  Future<void> _buyCoffee() async {
-    final ok = await openLink(buyMeACoffeeUrl);
-    if (!mounted) return;
-    if (ok) {
-      setState(() => _tipped = true);
-    } else {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Couldn’t open the browser.')),
-        );
-    }
   }
 
   @override
@@ -288,7 +273,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            _CoffeeCard(thanked: _tipped, onTap: _buyCoffee),
+            _CoffeeCard(
+              thanked: prefs.coffees > 0,
+              onTap: () => showTipSheet(context),
+            ),
             const SizedBox(height: 22),
             const _Heading('Your library · on this device'),
             _VaultCard(
@@ -747,11 +735,11 @@ class _VaultCard extends StatelessWidget {
   }
 }
 
-/// "Buy me a coffee": a sun card that opens the tip page in the browser.
+/// "Buy me a coffee": a sun card that opens the tip sheet.
 class _CoffeeCard extends StatelessWidget {
   const _CoffeeCard({required this.thanked, required this.onTap});
 
-  /// After the tip page was opened: say thanks.
+  /// After a tip: say thanks (tapping still opens the tip sheet).
   final bool thanked;
   final VoidCallback onTap;
 
@@ -765,7 +753,6 @@ class _CoffeeCard extends StatelessWidget {
         : 'A small tip helps keep it ad‑free.';
     return Semantics(
       button: true,
-      link: true,
       liveRegion: true,
       label: '$title. $note',
       excludeSemantics: true,

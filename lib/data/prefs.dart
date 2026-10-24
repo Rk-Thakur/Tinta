@@ -17,6 +17,7 @@ class AppPrefs extends ChangeNotifier {
   ThemeChoice _theme = ThemeChoice.light;
   InkPair _inkPair = InkPair.riso;
   bool _pencilSounds = true;
+  int _coffees = 0;
 
   bool get onboarded => _onboarded;
   bool get leftHanded => _leftHanded;
@@ -26,6 +27,9 @@ class AppPrefs extends ChangeNotifier {
   ThemeChoice get theme => _theme;
   InkPair get inkPair => _inkPair;
   bool get pencilSounds => _pencilSounds;
+
+  /// Coffees bought (tips), for the thank-you in Settings.
+  int get coffees => _coffees;
 
   static Future<AppPrefs> load(Vault vault) async {
     final p = AppPrefs(vault: vault);
@@ -42,6 +46,7 @@ class AppPrefs extends ChangeNotifier {
       p._theme = _byName(ThemeChoice.values, j['theme'], ThemeChoice.light);
       p._inkPair = _byName(InkPair.values, j['inkPair'], InkPair.riso);
       p._pencilSounds = j['pencilSounds'] != false;
+      p._coffees = (j['coffees'] as num?)?.toInt() ?? 0;
     }
     return p;
   }
@@ -65,6 +70,7 @@ class AppPrefs extends ChangeNotifier {
       'theme': _theme.name,
       'inkPair': _inkPair.name,
       'pencilSounds': _pencilSounds,
+      'coffees': _coffees,
     });
   }
 
@@ -105,6 +111,11 @@ class AppPrefs extends ChangeNotifier {
 
   set pencilSounds(bool v) {
     _pencilSounds = v;
+    _changed();
+  }
+
+  void addCoffees(int cups) {
+    _coffees += cups;
     _changed();
   }
 }

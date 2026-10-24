@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tinta/app/app.dart';
@@ -9,19 +9,25 @@ import 'package:tinta/app/routes.dart';
 import 'package:tinta/data/library_store.dart';
 import 'package:tinta/data/prefs.dart';
 import 'package:tinta/drawing/page_canvas.dart';
-import 'package:tinta/services/links.dart';
+import 'package:tinta/services/tips.dart';
 import 'package:tinta/theme/tokens.dart';
 
 Future<AppPrefs> _open(
   WidgetTester tester, {
   String route = Routes.settings,
+  TipJar? tips,
 }) async {
   tester.view.physicalSize = const Size(390 * 3, 844 * 3);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   final prefs = AppPrefs();
   await tester.pumpWidget(
-    TintaApp(library: LibraryStore.memory(), prefs: prefs, initialRoute: route),
+    TintaApp(
+      library: LibraryStore.memory(),
+      prefs: prefs,
+      tips: tips,
+      initialRoute: route,
+    ),
   );
   await tester.pumpAndSettle();
   return prefs;
@@ -83,37 +89,57 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('buy me a coffee opens the tip page, then says thanks', (
+  testWidgets('buy me a coffee: pick a size, pay, get thanked', (tester) async {
+    final store = _FakeStore();
+    final prefs = await _open(tester, tips: TipJar(store));
+    await _openTipSheet(tester);
+    expect(find.text('\$1.99'), findsOneWidget);
+    expect(find.text('\$4.99'), findsOneWidget);
+    expect(find.text('\$9.99'), findsOneWidget);
+    expect(tester.takeException(), isNull); // three tiles fit a phone
+
+    await tester.tap(find.bySemanticsLabel('Big coffee, \$4.99'));
+    await tester.pump();
+    expect(store.bought, ['tinta.tip.medium']);
+
+    store.updates_.add(('tinta.tip.medium', TipOutcome.purchased));
+    await tester.pumpAndSettle();
+    expect(find.text('Thank you!'), findsOneWidget);
+    expect(prefs.coffees, 2);
+
+    await tester.tap(find.text('Back to drawing'));
+    await tester.pumpAndSettle();
+    expect(find.text('Thank you, that means a lot!'), findsOneWidget);
+    await store.updates_.close();
+  });
+
+  testWidgets('a canceled or failed payment goes back to the choices', (
     tester,
   ) async {
-    final opened = <Object?>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('tinta/device'),
-      (call) async {
-        if (call.method == 'openUrl') {
-          opened.add((call.arguments as Map)['url']);
-          return true;
-        }
-        return null;
-      },
-    );
-    addTearDown(
-      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        const MethodChannel('tinta/device'),
-        null,
-      ),
-    );
-    await _open(tester);
-    final card = find.text('Enjoying tinta? Buy me a coffee');
-    await tester.dragUntilVisible(
-      card,
-      find.byType(ListView),
-      const Offset(0, -200),
-    );
-    await tester.tap(card);
+    final store = _FakeStore();
+    final prefs = await _open(tester, tips: TipJar(store));
+    await _openTipSheet(tester);
+
+    await tester.tap(find.bySemanticsLabel('Coffee, \$1.99'));
+    store.updates_.add(('tinta.tip.small', TipOutcome.canceled));
     await tester.pumpAndSettle();
-    expect(opened, [buyMeACoffeeUrl]);
-    expect(find.text('Thank you, that means a lot!'), findsOneWidget);
+    expect(find.text('Buy me a coffee'), findsOneWidget);
+    expect(find.textContaining('didn’t go through'), findsNothing);
+
+    await tester.tap(find.bySemanticsLabel('Coffee, \$1.99'));
+    store.updates_.add(('tinta.tip.small', TipOutcome.failed));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('You weren’t charged'), findsOneWidget);
+    expect(prefs.coffees, 0);
+    await store.updates_.close();
+  });
+
+  testWidgets('no store: the tip sheet says tips are unavailable', (
+    tester,
+  ) async {
+    await _open(tester);
+    await _openTipSheet(tester);
+    expect(find.text('Tips aren’t available right now'), findsOneWidget);
   });
 
   testWidgets('two-finger tap undoes, three-finger tap redoes', (tester) async {
@@ -159,4 +185,36 @@ void main() {
     expect(_enabled(tester, 'Undo'), isTrue);
     expect(_enabled(tester, 'Redo'), isFalse);
   });
+}
+
+Future<void> _openTipSheet(WidgetTester tester) async {
+  final card = find.text('Enjoying tinta? Buy me a coffee');
+  await tester.dragUntilVisible(
+    card,
+    find.byType(ListView),
+    const Offset(0, -200),
+  );
+  await tester.tap(card);
+  await tester.pumpAndSettle();
+}
+
+class _FakeStore implements TipStore {
+  final updates_ = StreamController<(String, TipOutcome)>.broadcast();
+  final bought = <String>[];
+
+  @override
+  Future<bool> isAvailable() async => true;
+
+  @override
+  Future<List<TipOffer>> offers() async => const [
+    TipOffer(Tip.small, '\$1.99'),
+    TipOffer(Tip.medium, '\$4.99'),
+    TipOffer(Tip.large, '\$9.99'),
+  ];
+
+  @override
+  Future<void> buy(TipOffer offer) async => bought.add(offer.tip.productId);
+
+  @override
+  Stream<(String, TipOutcome)> get updates => updates_.stream;
 }

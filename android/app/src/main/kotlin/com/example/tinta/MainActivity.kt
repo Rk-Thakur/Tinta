@@ -1,9 +1,6 @@
 package com.example.tinta
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import android.media.AudioAttributes
-import android.net.Uri
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
@@ -33,16 +30,6 @@ class MainActivity : FlutterActivity() {
         MethodChannel(messenger, "tinta/device").setMethodCallHandler { call, result ->
             if (call.method == "freeSpace") {
                 result.success(StatFs(filesDir.absolutePath).availableBytes)
-            } else if (call.method == "openUrl") {
-                // Opens in the browser (Buy me a coffee); only https links.
-                val uri = Uri.parse(call.argument<String>("url") ?: "")
-                if (uri.scheme != "https") return@setMethodCallHandler result.success(false)
-                try {
-                    startActivity(Intent(Intent.ACTION_VIEW, uri))
-                    result.success(true)
-                } catch (e: ActivityNotFoundException) {
-                    result.success(false)
-                }
             } else {
                 result.notImplemented()
             }

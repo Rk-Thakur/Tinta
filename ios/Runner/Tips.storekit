@@ -1,0 +1,57 @@
+{
+  "identifier": "7A3F2C10",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "6740000001",
+      "localizations": [
+        {
+          "description": "A coffee for the maker of tinta.",
+          "displayName": "Coffee",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "tinta.tip.small",
+      "referenceName": "Tip - Coffee",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "6740000002",
+      "localizations": [
+        {
+          "description": "A big coffee for the maker of tinta.",
+          "displayName": "Big coffee",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "tinta.tip.medium",
+      "referenceName": "Tip - Big coffee",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "6740000003",
+      "localizations": [
+        {
+          "description": "Coffee and cake for the maker of tinta.",
+          "displayName": "Coffee & cake",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "tinta.tip.large",
+      "referenceName": "Tip - Coffee & cake",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {},
+  "subscriptionGroups": [],
+  "version": {
+    "major": 2,
+    "minor": 0
+  }
+}

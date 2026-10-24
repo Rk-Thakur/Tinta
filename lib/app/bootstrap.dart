@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../data/library_store.dart';
 import '../data/prefs.dart';
 import '../data/studio_store.dart';
+import '../services/tips.dart';
 import '../theme/tokens.dart';
 import '../ui/logo.dart';
 import 'app.dart';
@@ -15,11 +16,13 @@ class AppData {
     required this.library,
     required this.studio,
     required this.prefs,
+    this.tips,
   });
 
   final LibraryStore library;
   final StudioStore studio;
   final AppPrefs prefs;
+  final TipJar? tips;
 }
 
 /// Starts the app: the splash (bouncing dot) while [load] runs, then
@@ -79,6 +82,7 @@ class _TintaBootstrapState extends State<TintaBootstrap> {
               library: data.library,
               studio: data.studio,
               prefs: data.prefs,
+              tips: data.tips,
               // First launch (or onboarding never finished): onboarding.
               initialRoute: data.prefs.onboarded
                   ? Routes.library
