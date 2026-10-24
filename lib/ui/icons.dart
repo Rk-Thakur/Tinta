@@ -38,6 +38,10 @@ enum TintaIcons {
   plus('<path d="M12 5v14M5 12h14"/>'),
   close('<path d="M6 6l12 12M18 6L6 18"/>'),
   back('<path d="M15 6l-6 6 6 6"/>'),
+  chevronRight('<path d="M9 6l6 6-6 6"/>'),
+  coffee(
+    '<path d="M4 9h13v5a5 5 0 01-5 5H9a5 5 0 01-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 010 5H17"/><path d="M8 3c-.8 1 .8 2 0 3M12 3c-.8 1 .8 2 0 3"/>',
+  ),
   arrowRight('<path d="M5 12h14M13 6l6 6-6 6"/>'),
   eye(
     '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',

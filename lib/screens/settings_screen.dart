@@ -9,6 +9,7 @@ import '../data/prefs.dart';
 import '../data/studio_store.dart';
 import '../data/vault.dart';
 import '../services/backup.dart';
+import '../services/links.dart';
 import '../services/reminders.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
@@ -28,6 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _busy = false;
   String? _message;
   bool _messageOk = false;
+  bool _tipped = false;
 
   @override
   void didChangeDependencies() {
@@ -139,6 +141,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (picked == null || !mounted) return;
     prefs.reminderTime = picked;
     if (prefs.reminder) await _setReminder(prefs, true);
+  }
+
+  Future<void> _buyCoffee() async {
+    final ok = await openLink(buyMeACoffeeUrl);
+    if (!mounted) return;
+    if (ok) {
+      setState(() => _tipped = true);
+    } else {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Couldn’t open the browser.')),
+        );
+    }
   }
 
   @override
@@ -271,6 +287,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 14),
+            _CoffeeCard(thanked: _tipped, onTap: _buyCoffee),
             const SizedBox(height: 22),
             const _Heading('Your library · on this device'),
             _VaultCard(
@@ -704,6 +722,9 @@ class _VaultCard extends StatelessWidget {
               onPressed: busy || u == null ? null : onRestore,
               style: TextButton.styleFrom(
                 foregroundColor: TintaInk.newsprint,
+                disabledForegroundColor: TintaInk.newsprint.withValues(
+                  alpha: 0.4,
+                ),
                 minimumSize: const Size(44, 44),
               ),
               child: const Text('Restore from a backup'),
@@ -721,6 +742,95 @@ class _VaultCard extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Buy me a coffee": a sun card that opens the tip page in the browser.
+class _CoffeeCard extends StatelessWidget {
+  const _CoffeeCard({required this.thanked, required this.onTap});
+
+  /// After the tip page was opened: say thanks.
+  final bool thanked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = thanked
+        ? 'Thank you, that means a lot!'
+        : 'Enjoying tinta? Buy me a coffee';
+    final note = thanked
+        ? 'Your support keeps tinta offline and ad‑free.'
+        : 'A small tip helps keep it ad‑free.';
+    return Semantics(
+      button: true,
+      link: true,
+      liveRegion: true,
+      label: '$title. $note',
+      excludeSemantics: true,
+      child: Material(
+        // Ink on sun in every theme.
+        color: TintaColors.sun,
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            child: Row(
+              spacing: 12,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: TintaInk.studioInk,
+                    borderRadius: BorderRadius.circular(TintaRadii.sm),
+                  ),
+                  child: const Center(
+                    child: TintaIcon(
+                      TintaIcons.coffee,
+                      size: 24,
+                      strokeWidth: 2,
+                      color: TintaColors.sun,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TintaType.body(
+                          15,
+                          weight: FontWeight.w700,
+                          color: TintaInk.studioInk,
+                          height: 1.3,
+                        ),
+                      ),
+                      Text(
+                        note,
+                        style: TintaType.body(
+                          12,
+                          color: TintaInk.studioInk,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const TintaIcon(
+                  TintaIcons.chevronRight,
+                  size: 18,
+                  strokeWidth: 2.2,
+                  color: TintaInk.studioInk,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

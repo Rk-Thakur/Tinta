@@ -1,6 +1,7 @@
 import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tinta/app/app.dart';
@@ -8,6 +9,7 @@ import 'package:tinta/app/routes.dart';
 import 'package:tinta/data/library_store.dart';
 import 'package:tinta/data/prefs.dart';
 import 'package:tinta/drawing/page_canvas.dart';
+import 'package:tinta/services/links.dart';
 import 'package:tinta/theme/tokens.dart';
 
 Future<AppPrefs> _open(
@@ -79,6 +81,39 @@ void main() {
     await tester.pump();
     expect(prefs.pencilSounds, isFalse);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('buy me a coffee opens the tip page, then says thanks', (
+    tester,
+  ) async {
+    final opened = <Object?>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('tinta/device'),
+      (call) async {
+        if (call.method == 'openUrl') {
+          opened.add((call.arguments as Map)['url']);
+          return true;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('tinta/device'),
+        null,
+      ),
+    );
+    await _open(tester);
+    final card = find.text('Enjoying tinta? Buy me a coffee');
+    await tester.dragUntilVisible(
+      card,
+      find.byType(ListView),
+      const Offset(0, -200),
+    );
+    await tester.tap(card);
+    await tester.pumpAndSettle();
+    expect(opened, [buyMeACoffeeUrl]);
+    expect(find.text('Thank you, that means a lot!'), findsOneWidget);
   });
 
   testWidgets('two-finger tap undoes, three-finger tap redoes', (tester) async {

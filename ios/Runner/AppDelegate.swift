@@ -26,6 +26,14 @@ import UIKit
 
     let device = FlutterMethodChannel(name: "tinta/device", binaryMessenger: messenger)
     device.setMethodCallHandler { call, result in
+      if call.method == "openUrl" {
+        // Opens in the browser (Buy me a coffee); only https links.
+        guard let s = (call.arguments as? [String: Any])?["url"] as? String,
+          let url = URL(string: s), url.scheme == "https"
+        else { return result(false) }
+        UIApplication.shared.open(url) { ok in result(ok) }
+        return
+      }
       guard call.method == "freeSpace" else { return result(FlutterMethodNotImplemented) }
       let home = URL(fileURLWithPath: NSHomeDirectory())
       let values = try? home.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
