@@ -84,8 +84,16 @@ class StoreTipStore implements TipStore {
             PurchaseStatus.canceled => TipOutcome.canceled,
             PurchaseStatus.error => TipOutcome.failed,
           };
-          // Finish the transaction so the store doesn't redeliver it.
-          if (p.pendingCompletePurchase) await _iap.completePurchase(p);
+          // Finish the transaction so the store doesn't redeliver it. A
+          // canceled or failed payment has no transaction (and no id) to
+          // finish; StoreKit 2 crashes if asked to.
+          if (p.pendingCompletePurchase && p.purchaseID != null) {
+            try {
+              await _iap.completePurchase(p);
+            } catch (_) {
+              // Redelivered next launch and finished then.
+            }
+          }
           yield (p.productID, outcome);
         }
       });
@@ -143,7 +151,16 @@ class TipJar extends ChangeNotifier {
 
   /// Start listening for purchases. Call once, at launch.
   void start() {
-    _sub ??= store.updates.listen(_onUpdate);
+    _sub ??= store.updates.listen(
+      _onUpdate,
+      // A store error ends the payment, never the app.
+      onError: (Object _) {
+        if (_state != TipJarState.buying) return;
+        _buying = null;
+        _error = 'The payment didn’t go through. You weren’t charged.';
+        _set(_offers.isEmpty ? TipJarState.idle : TipJarState.ready);
+      },
+    );
   }
 
   /// Fetch prices (when the sheet opens).

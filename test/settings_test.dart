@@ -131,6 +131,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('You weren’t charged'), findsOneWidget);
     expect(prefs.coffees, 0);
+
+    // A store error mid-payment doesn't crash; it's a failed payment.
+    await tester.tap(find.bySemanticsLabel('Coffee, \$1.99'));
+    await tester.pump();
+    store.updates_.addError(StateError('store hiccup'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('You weren’t charged'), findsOneWidget);
+    expect(find.text('Buy me a coffee'), findsOneWidget);
     await store.updates_.close();
   });
 
