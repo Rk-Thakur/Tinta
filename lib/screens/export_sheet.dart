@@ -348,7 +348,7 @@ class _ExportSheetState extends State<ExportSheet> {
                   Expanded(
                     child: Builder(
                       builder: (b) => PillButton(
-                        label: 'Nearby share',
+                        label: 'Share',
                         variant: PillVariant.outline,
                         expand: true,
                         onPressed: () => _share(b),

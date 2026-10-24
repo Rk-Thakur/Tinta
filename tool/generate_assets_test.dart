@@ -5,6 +5,7 @@
 //   flutter test tool/generate_assets_test.dart
 // Set PREVIEW=<dir> to also write a preview sheet of every variant.
 import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -43,8 +44,58 @@ Future<List<int>> renderIcon(
   final h = s * markHeight;
   paintLogoMark(canvas, Rect.fromCenter(center: Offset(s / 2, s / 2), width: s * 0.9, height: h), style, color: markColor);
   final image = await recorder.endRecording().toImage(size, size);
+  if (!transparent) {
+    // Opaque tiles drop the alpha channel: the App Store rejects an icon
+    // that has one, even when every pixel is solid.
+    final rgba = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    return encodeRgbPng(rgba!.buffer.asUint8List(), size, size);
+  }
   final png = await image.toByteData(format: ui.ImageByteFormat.png);
   return png!.buffer.asUint8List();
+}
+
+/// Minimal PNG encoder: 8-bit RGB, no alpha.
+List<int> encodeRgbPng(Uint8List rgba, int width, int height) {
+  final raw = BytesBuilder();
+  for (var y = 0; y < height; y++) {
+    raw.addByte(0); // filter: none
+    for (var x = 0; x < width; x++) {
+      final i = (y * width + x) * 4;
+      raw.add([rgba[i], rgba[i + 1], rgba[i + 2]]);
+    }
+  }
+  List<int> chunk(String type, List<int> data) {
+    final body = [...ascii.encode(type), ...data];
+    final len = ByteData(4)..setUint32(0, data.length);
+    final crc = ByteData(4)..setUint32(0, _crc32(body));
+    return [...len.buffer.asUint8List(), ...body, ...crc.buffer.asUint8List()];
+  }
+
+  final ihdr = ByteData(13)
+    ..setUint32(0, width)
+    ..setUint32(4, height)
+    ..setUint8(8, 8) // bit depth
+    ..setUint8(9, 2) // color type: RGB
+    ..setUint8(10, 0)
+    ..setUint8(11, 0)
+    ..setUint8(12, 0);
+  return [
+    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+    ...chunk('IHDR', ihdr.buffer.asUint8List()),
+    ...chunk('IDAT', ZLibEncoder().convert(raw.takeBytes())),
+    ...chunk('IEND', const []),
+  ];
+}
+
+int _crc32(List<int> bytes) {
+  var c = 0xFFFFFFFF;
+  for (final b in bytes) {
+    c ^= b;
+    for (var k = 0; k < 8; k++) {
+      c = (c & 1) != 0 ? 0xEDB88320 ^ (c >> 1) : c >> 1;
+    }
+  }
+  return c ^ 0xFFFFFFFF;
 }
 
 Future<void> _write(String path, List<int> bytes) async {
