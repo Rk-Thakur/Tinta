@@ -44,8 +44,8 @@ Future<List<int>> renderIcon(
   final h = s * markHeight;
   paintLogoMark(canvas, Rect.fromCenter(center: Offset(s / 2, s / 2), width: s * 0.9, height: h), style, color: markColor);
   final image = await recorder.endRecording().toImage(size, size);
-  if (!transparent) {
-    // Opaque tiles drop the alpha channel: the App Store rejects an icon
+  if (!transparent && radius == 0) {
+    // Square opaque tiles drop the alpha channel: the App Store rejects an icon
     // that has one, even when every pixel is solid.
     final rgba = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
     return encodeRgbPng(rgba!.buffer.asUint8List(), size, size);
